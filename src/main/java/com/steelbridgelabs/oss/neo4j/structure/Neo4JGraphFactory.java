@@ -65,9 +65,15 @@ public class Neo4JGraphFactory {
         if (className != null) {
             // load class
             Class<?> type = Class.forName(className);
-            Constructor<?> constructor = type.getConstructor(new Class[] {Driver.class});
-            // create instance
-            return (Neo4JElementIdProvider<?>)constructor.newInstance(driver);       
+            //create instance
+            try {
+                return (Neo4JElementIdProvider<?>)type.newInstance();
+            } 
+            catch (InstantiationException iex) {
+                Constructor<?> constructor = type.getConstructor(new Class[] {Driver.class});
+                return (Neo4JElementIdProvider<?>)constructor.newInstance(driver); 
+            }
+            
         }
         return null;
     }
