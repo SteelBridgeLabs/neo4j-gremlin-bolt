@@ -26,6 +26,8 @@ import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author Rogelio J. Baucells
@@ -44,8 +46,8 @@ public class Neo4JGraphFactory {
             // create driver instance
             Driver driver = GraphDatabase.driver(configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JUrlConfigurationKey), AuthTokens.basic(configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JUsernameConfigurationKey), configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JPasswordConfigurationKey)), config);
             // create providers
-            Neo4JElementIdProvider<?> vertexIdProvider = loadProvider(configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JVertexIdProviderClassNameConfigurationKey));
-            Neo4JElementIdProvider<?> edgeIdProvider = loadProvider(configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JEdgeIdProviderClassNameConfigurationKey));
+            Neo4JElementIdProvider<?> vertexIdProvider = loadProvider(configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JVertexIdProviderClassNameConfigurationKey), driver);
+            Neo4JElementIdProvider<?> edgeIdProvider = loadProvider(configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JEdgeIdProviderClassNameConfigurationKey), driver);
             // check a read partition is required
             if (graphName != null)
                 return new Neo4JGraph(new AnyLabelReadPartition(graphName), new String[]{graphName}, driver, vertexIdProvider, edgeIdProvider, configuration);
@@ -58,13 +60,14 @@ public class Neo4JGraphFactory {
         }
     }
 
-    private static Neo4JElementIdProvider<?> loadProvider(String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private static Neo4JElementIdProvider<?> loadProvider(String className, Driver driver) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         // check class name
         if (className != null) {
             // load class
             Class<?> type = Class.forName(className);
+            Constructor<?> constructor = type.getConstructor(new Class[] {Driver.class});
             // create instance
-            return (Neo4JElementIdProvider<?>)type.newInstance();
+            return (Neo4JElementIdProvider<?>)constructor.newInstance(driver);       
         }
         return null;
     }
