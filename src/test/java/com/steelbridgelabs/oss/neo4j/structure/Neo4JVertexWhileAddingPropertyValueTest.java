@@ -18,6 +18,7 @@
 
 package com.steelbridgelabs.oss.neo4j.structure;
 
+import javafx.util.Pair;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
@@ -31,7 +32,9 @@ import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.types.Node;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Rogelio J. Baucells
@@ -77,16 +80,26 @@ public class Neo4JVertexWhileAddingPropertyValueTest {
         Mockito.when(node.keys()).thenAnswer(invocation -> Collections.emptyList());
         Mockito.when(provider.generate()).thenAnswer(invocation -> 2L);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
+
+
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
         // act
-        VertexProperty<?> result = vertex.property(VertexProperty.Cardinality.single, "test", 1L);
+        HashMap<Neo4JPropertySamples, VertexProperty<?>> results = new HashMap<>(Neo4JPropertySamples.values().length);
+        for ( Neo4JPropertySamples sam : Neo4JPropertySamples.values() ) {
+            results.put(sam, vertex.property(VertexProperty.Cardinality.single, sam.title, sam.value));
+        }
+
         // assert
-        Assert.assertNotNull("Failed to add property to vertex", result);
-        Assert.assertTrue("Property value is not present", result.isPresent());
-        Assert.assertTrue("Failed to set vertex as dirty", vertex.isDirty());
-        Assert.assertEquals("Invalid property key", result.key(), "test");
-        Assert.assertEquals("Invalid property value", result.value(), 1L);
-        Assert.assertEquals("Invalid property element", result.element(), vertex);
+        for ( Map.Entry<Neo4JPropertySamples,VertexProperty<?>> entry : results.entrySet() ) {
+            Neo4JPropertySamples key = entry.getKey();
+            VertexProperty<?> result = entry.getValue();
+            Assert.assertNotNull("Failed to add property to vertex", result);
+            Assert.assertTrue("Property value is not present", result.isPresent());
+            Assert.assertTrue("Failed to set vertex as dirty", vertex.isDirty());
+            Assert.assertEquals("Invalid property key", result.key(), key.title);
+            Assert.assertEquals("Invalid property value", result.value(), key.value);
+            Assert.assertEquals("Invalid property element", result.element(), vertex);
+        }
     }
 
     @Test

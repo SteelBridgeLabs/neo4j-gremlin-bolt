@@ -32,6 +32,8 @@ import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.types.Node;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Rogelio J. Baucells
@@ -78,13 +80,21 @@ public class Neo4JVertexWhileRollbackTest {
         Mockito.when(provider.generate()).thenAnswer(invocation -> 2L);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
-        vertex.property("key1", "value2");
+
         // act
+        Map<Neo4JPropertySamples, VertexProperty<?>> results = new HashMap<>(Neo4JPropertySamples.values().length);
+        for ( Neo4JPropertySamples sam : Neo4JPropertySamples.values() ) {
+            results.put(sam, vertex.property(sam.title, sam.value));
+        }
         vertex.rollback();
         // assert
-        Assert.assertNotNull(vertex.property("key1"));
-        Property<String> property = vertex.property("key1");
-        Assert.assertEquals("Failed to rollback property value", "value1", property.value());
+        for ( Map.Entry<Neo4JPropertySamples,VertexProperty<?>> entry : results.entrySet() ) {
+            Neo4JPropertySamples key = entry.getKey();
+            VertexProperty<?> result = entry.getValue();
+            Assert.assertNotNull(vertex.property(key.title));
+            Property<String> property = vertex.property(key.title);
+            Assert.assertEquals("Failed to rollback property value", key.value, property.value());
+        }
     }
 
     @Test
@@ -102,7 +112,11 @@ public class Neo4JVertexWhileRollbackTest {
         Mockito.when(provider.generate()).thenAnswer(invocation -> 2L);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
-        vertex.property("key1", "value2");
+
+        Map<Neo4JPropertySamples, VertexProperty<?>> results = new HashMap<>(Neo4JPropertySamples.values().length);
+        for ( Neo4JPropertySamples sam : Neo4JPropertySamples.values() ) {
+            results.put(sam, vertex.property(sam.title, sam.value));
+        }
         // act
         vertex.rollback();
         // assert
