@@ -81,7 +81,7 @@ public class Neo4JVertexWhileRollbackTest {
         Mockito.when(node.labels()).thenAnswer(invocation -> Collections.singletonList("l1"));
 
         Mockito.when(node.keys()).thenAnswer(invocation -> Neo4JPropertySamples.getKeys());
-        for ( Neo4JPropertySamples sam : Neo4JPropertySamples.values() ) {
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
             Mockito.when(node.get(Mockito.eq(sam.title))).thenAnswer(invocation -> Values.value(sam.value2));
         }
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
@@ -89,30 +89,30 @@ public class Neo4JVertexWhileRollbackTest {
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
 
         Map<Neo4JPropertySamples, VertexProperty<?>> results = new HashMap<>(Neo4JPropertySamples.values().length);
-        for ( Neo4JPropertySamples sam : Neo4JPropertySamples.values() ) {
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
             try {
                 VertexProperty<?> res = vertex.property(sam.title, sam.value);
                 results.put(sam, res);
             } catch (IllegalArgumentException ex) {
-                if (! sam.supported) continue;
+                if (!sam.supported) continue;
 
                 StringBuffer sb = new StringBuffer("could not add property ")
                         .append(" [").append(sam).append("] ")
-                        .append('\n').append("Stacktrace:").append('\n');
-                for (StackTraceElement element : ex.getStackTrace() ) {
+                        .append('\n' ).append("Stacktrace:").append('\n' );
+                for (StackTraceElement element : ex.getStackTrace()) {
                     sb.append(element.toString());
-                };
+                }
                 collector.addError(new Throwable(sb.toString()));
             }
         }
         // act
         vertex.rollback();
         // assert
-        for ( Map.Entry<Neo4JPropertySamples,VertexProperty<?>> entry : results.entrySet() ) {
+        for (Map.Entry<Neo4JPropertySamples, VertexProperty<?>> entry : results.entrySet()) {
             Neo4JPropertySamples sam = entry.getKey();
             Assert.assertNotNull(vertex.property(sam.title));
             Property<String> property = vertex.property(sam.title);
-            if (! sam.supported) continue;
+            if (!sam.supported) continue;
             String errmsg = String.format("orig: %s, prop: %s", sam.toString(), property.toString());
             Assert.assertTrue(errmsg, property.isPresent());
             Assert.assertEquals(errmsg, sam.value2, property.value());
@@ -136,19 +136,19 @@ public class Neo4JVertexWhileRollbackTest {
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
 
         Map<Neo4JPropertySamples, VertexProperty<?>> results = new HashMap<>(Neo4JPropertySamples.values().length);
-        for ( Neo4JPropertySamples sam : Neo4JPropertySamples.values() ) {
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
 
             try {
                 results.put(sam, vertex.property(sam.title, sam.value));
             } catch (IllegalArgumentException ex) {
-                if (! sam.supported) continue;
+                if (!sam.supported) continue;
 
                 StringBuffer sb = new StringBuffer("could not add property ")
                         .append(" [").append(sam).append("] ")
-                        .append('\n').append("Stacktrace:").append('\n');
-                for (StackTraceElement element : ex.getStackTrace() ) {
+                        .append('\n' ).append("Stacktrace:").append('\n' );
+                for (StackTraceElement element : ex.getStackTrace()) {
                     sb.append(element.toString());
-                };
+                }
                 collector.addError(new Throwable(sb.toString()));
             }
         }

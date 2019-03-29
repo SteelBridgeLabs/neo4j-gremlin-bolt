@@ -21,7 +21,9 @@ package com.steelbridgelabs.oss.neo4j.structure;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.values.storable.CoordinateReferenceSystem;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public enum Neo4JPropertySamples {
     BOOL("test-bool", true, true, false),
@@ -48,6 +50,14 @@ public enum Neo4JPropertySamples {
         this.clazz = value.getClass();
     }
 
+    static public Collection<String> getKeys() {
+        Set<String> ret = new HashSet<>(Neo4JPropertySamples.values().length);
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
+            ret.add(sam.title);
+        }
+        return ret;
+    }
+
     @Override
     public String toString() {
         return new StringBuilder()
@@ -57,14 +67,6 @@ public enum Neo4JPropertySamples {
                 .append("(").append(this.value)
                 .append(",").append(this.value2).append(")")
                 .toString();
-    }
-
-    static public Collection<String> getKeys() {
-        Set<String> ret = new HashSet<>(Neo4JPropertySamples.values().length);
-        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
-            ret.add(sam.title);
-        }
-        return ret;
     }
 
 }

@@ -88,24 +88,24 @@ public class Neo4JVertexWhileAddingPropertyValueTest {
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
         // act
         HashMap<Neo4JPropertySamples, VertexProperty<?>> results = new HashMap<>(Neo4JPropertySamples.values().length);
-        for ( Neo4JPropertySamples sam : Neo4JPropertySamples.values() ) {
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
             try {
                 results.put(sam, vertex.property(VertexProperty.Cardinality.single, sam.title, sam.value));
             } catch (IllegalArgumentException ex) {
-                if (! sam.supported) continue;
+                if (!sam.supported) continue;
 
                 StringBuffer sb = new StringBuffer("could not create vertex property ")
                         .append(" [").append(sam).append("] ")
-                        .append('\n').append("Stacktrace:").append('\n');
-                for (StackTraceElement element : ex.getStackTrace() ) {
+                        .append('\n' ).append("Stacktrace:").append('\n' );
+                for (StackTraceElement element : ex.getStackTrace()) {
                     sb.append(element.toString());
-                };
+                }
                 collector.addError(new Throwable(sb.toString()));
             }
         }
 
         // assert
-        for ( Map.Entry<Neo4JPropertySamples,VertexProperty<?>> entry : results.entrySet() ) {
+        for (Map.Entry<Neo4JPropertySamples, VertexProperty<?>> entry : results.entrySet()) {
             Neo4JPropertySamples key = entry.getKey();
             VertexProperty<?> result = entry.getValue();
             Assert.assertNotNull("Failed to add property to vertex", result);
