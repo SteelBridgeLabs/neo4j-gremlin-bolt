@@ -22,7 +22,9 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -31,13 +33,17 @@ import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.types.Node;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Rogelio J. Baucells
  */
 @RunWith(MockitoJUnitRunner.class)
 public class Neo4JVertexWhileAddingPropertyValueTest {
+    @Rule
+    public ErrorCollector collector = new ErrorCollector();
 
     @Mock
     private Neo4JGraph graph;
@@ -77,16 +83,39 @@ public class Neo4JVertexWhileAddingPropertyValueTest {
         Mockito.when(node.keys()).thenAnswer(invocation -> Collections.emptyList());
         Mockito.when(provider.generate()).thenAnswer(invocation -> 2L);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
+
+
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
         // act
-        VertexProperty<?> result = vertex.property(VertexProperty.Cardinality.single, "test", 1L);
+        HashMap<Neo4JPropertySamples, VertexProperty<?>> results = new HashMap<>(Neo4JPropertySamples.values().length);
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
+            try {
+                results.put(sam, vertex.property(VertexProperty.Cardinality.single, sam.title, sam.value));
+            } catch (IllegalArgumentException ex) {
+                if (!sam.supported) continue;
+
+                StringBuffer sb = new StringBuffer("could not create vertex property ")
+                        .append(" [").append(sam).append("] ")
+                        .append('\n' ).append("Stacktrace:").append('\n' );
+                for (StackTraceElement element : ex.getStackTrace()) {
+                    sb.append(element.toString()).append('\n');
+                    if (element.getClassName().equals(this.getClass().getCanonicalName())) break;
+                }
+                collector.addError(new Throwable(sb.toString()));
+            }
+        }
+
         // assert
-        Assert.assertNotNull("Failed to add property to vertex", result);
-        Assert.assertTrue("Property value is not present", result.isPresent());
-        Assert.assertTrue("Failed to set vertex as dirty", vertex.isDirty());
-        Assert.assertEquals("Invalid property key", result.key(), "test");
-        Assert.assertEquals("Invalid property value", result.value(), 1L);
-        Assert.assertEquals("Invalid property element", result.element(), vertex);
+        for (Map.Entry<Neo4JPropertySamples, VertexProperty<?>> entry : results.entrySet()) {
+            Neo4JPropertySamples key = entry.getKey();
+            VertexProperty<?> result = entry.getValue();
+            Assert.assertNotNull("Failed to add property to vertex", result);
+            Assert.assertTrue("Property value is not present", result.isPresent());
+            Assert.assertTrue("Failed to set vertex as dirty", vertex.isDirty());
+            Assert.assertEquals("Invalid property key", result.key(), key.title);
+            Assert.assertEquals("Invalid property value", result.value(), key.value);
+            Assert.assertEquals("Invalid property element", result.element(), vertex);
+        }
     }
 
     @Test
@@ -105,28 +134,29 @@ public class Neo4JVertexWhileAddingPropertyValueTest {
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
         // act
-        VertexProperty<?> result = vertex.property(VertexProperty.Cardinality.list, "test", 1L);
+        Neo4JPropertySamples sample = Neo4JPropertySamples.LONG;
+        VertexProperty<?> result = vertex.property(VertexProperty.Cardinality.list, sample.title, sample.value);
         // assert
         Assert.assertNotNull("Failed to add property to vertex", result);
         Assert.assertTrue("Property value is not present", result.isPresent());
         Assert.assertTrue("Failed to set vertex as dirty", vertex.isDirty());
-        Assert.assertEquals("Invalid property key", result.key(), "test");
-        Assert.assertEquals("Invalid property value", result.value(), 1L);
+        Assert.assertEquals("Invalid property key", result.key(), sample.title);
+        Assert.assertEquals("Invalid property value", result.value(), sample.value);
         Assert.assertEquals("Invalid property element", result.element(), vertex);
         // act
-        result = vertex.property(VertexProperty.Cardinality.list, "test", 1L);
+        result = vertex.property(VertexProperty.Cardinality.list, sample.title, sample.value);
         // assert
         Assert.assertNotNull("Failed to add property to vertex", result);
         Assert.assertTrue("Property value is not present", result.isPresent());
         Assert.assertTrue("Failed to set vertex as dirty", vertex.isDirty());
-        Assert.assertEquals("Invalid property key", result.key(), "test");
-        Assert.assertEquals("Invalid property value", result.value(), 1L);
+        Assert.assertEquals("Invalid property key", result.key(), sample.title);
+        Assert.assertEquals("Invalid property value", result.value(), sample.value);
         Assert.assertEquals("Invalid property element", result.element(), vertex);
-        Iterator<Long> values = vertex.values("test");
+        Iterator<Long> values = vertex.values(sample.title);
         Assert.assertTrue("Invalid number of property values", values.hasNext());
-        Assert.assertEquals("Invalid property value", values.next(), (Long)1L);
+        Assert.assertEquals("Invalid property value", values.next(), (Long)sample.value);
         Assert.assertTrue("Invalid number of property values", values.hasNext());
-        Assert.assertEquals("Invalid property value", values.next(), (Long)1L);
+        Assert.assertEquals("Invalid property value", values.next(), (Long)sample.value);
         Assert.assertFalse("Invalid number of property values", values.hasNext());
     }
 
@@ -146,23 +176,24 @@ public class Neo4JVertexWhileAddingPropertyValueTest {
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
         // act
-        VertexProperty<?> result = vertex.property(VertexProperty.Cardinality.set, "test", 1L);
+        Neo4JPropertySamples sample = Neo4JPropertySamples.LONG;
+        VertexProperty<?> result = vertex.property(VertexProperty.Cardinality.set, sample.title, sample.value);
         // assert
         Assert.assertNotNull("Failed to add property to vertex", result);
         Assert.assertTrue("Property value is not present", result.isPresent());
         Assert.assertTrue("Failed to set vertex as dirty", vertex.isDirty());
-        Assert.assertEquals("Invalid property value", result.value(), 1L);
+        Assert.assertEquals("Invalid property value", result.value(), sample.value);
         Assert.assertEquals("Invalid property element", result.element(), vertex);
         // act
-        result = vertex.property(VertexProperty.Cardinality.set, "test", 1L);
+        result = vertex.property(VertexProperty.Cardinality.set, sample.title, sample.value);
         // assert
         Assert.assertNotNull("Failed to add property to vertex", result);
         Assert.assertTrue("Property value is not present", result.isPresent());
         Assert.assertTrue("Failed to set vertex as dirty", vertex.isDirty());
-        Assert.assertEquals("Invalid property value", result.value(), 1L);
-        Iterator<Long> values = vertex.values("test");
+        Assert.assertEquals("Invalid property value", result.value(), sample.value);
+        Iterator<Long> values = vertex.values(sample.title);
         Assert.assertTrue("Invalid number of property values", values.hasNext());
-        Assert.assertEquals("Invalid property value", values.next(), (Long)1L);
+        Assert.assertEquals("Invalid property value", values.next(), (Long)sample.value);
         Assert.assertFalse("Invalid number of property values", values.hasNext());
     }
 
@@ -181,9 +212,11 @@ public class Neo4JVertexWhileAddingPropertyValueTest {
         Mockito.when(provider.generate()).thenAnswer(invocation -> 2L);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
-        vertex.property(VertexProperty.Cardinality.single, "test", 1L);
+
+        Neo4JPropertySamples sample = Neo4JPropertySamples.LONG;
+        vertex.property(VertexProperty.Cardinality.single, sample.title, sample.value);
         // act
-        vertex.property(VertexProperty.Cardinality.list, "test", 1L);
+        vertex.property(VertexProperty.Cardinality.list, sample.title, sample.value);
         // assert
         Assert.fail("Failed to detect property with different cardinality");
     }
@@ -204,7 +237,8 @@ public class Neo4JVertexWhileAddingPropertyValueTest {
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
         // act
-        vertex.property(VertexProperty.Cardinality.single, "test", 1L, "a", 2L);
+        Neo4JPropertySamples sample = Neo4JPropertySamples.LONG;
+        vertex.property(VertexProperty.Cardinality.single, sample.title, sample.value, "a", 2L);
         // assert
         Assert.fail("Failed to prevent property with meta properties");
     }

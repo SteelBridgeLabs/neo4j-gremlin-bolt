@@ -57,7 +57,8 @@
     </scm>
     <properties>
         <!-- neo4j -->
-        <neo4j.version>1.6.1</neo4j.version>
+        <neo4j.driver.version>1.7.3</neo4j.driver.version>
+        <neo4j.version>3.5.3</neo4j.version>
         <!-- gremlin -->
         <gremlin.version>3.3.3</gremlin.version>
         <!-- slf4j -->
@@ -81,6 +82,18 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>maven central</id>
+            <name>Central Repository</name>
+            <url>http://central.maven.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
     </repositories>
     <dependencies>
         <!-- gremlin -->
@@ -99,8 +112,14 @@
         <dependency>
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver</artifactId>
+            <version>${neo4j.driver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-values</artifactId>
             <version>${neo4j.version}</version>
         </dependency>
+
         <!-- slf4j -->
         <dependency>
             <groupId>org.slf4j</groupId>

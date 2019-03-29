@@ -23,21 +23,28 @@ import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.neo4j.driver.internal.value.PointValue;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.types.Node;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Rogelio J. Baucells
  */
 @RunWith(MockitoJUnitRunner.class)
 public class Neo4JVertexWhileRollbackTest {
+    @Rule
+    public ErrorCollector collector = new ErrorCollector();
 
     @Mock
     private Neo4JGraph graph;
@@ -73,18 +80,45 @@ public class Neo4JVertexWhileRollbackTest {
         Mockito.when(graph.features()).thenAnswer(invocation -> features);
         Mockito.when(node.get(Mockito.eq("id"))).thenAnswer(invocation -> Values.value(1L));
         Mockito.when(node.labels()).thenAnswer(invocation -> Collections.singletonList("l1"));
-        Mockito.when(node.keys()).thenAnswer(invocation -> Collections.singleton("key1"));
-        Mockito.when(node.get(Mockito.eq("key1"))).thenAnswer(invocation -> Values.value("value1"));
-        Mockito.when(provider.generate()).thenAnswer(invocation -> 2L);
+
+        Mockito.when(node.keys()).thenAnswer(invocation -> Neo4JPropertySamples.getKeys());
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
+            Mockito.when(node.get(Mockito.eq(sam.title))).thenAnswer(invocation -> Values.value(sam.value2));
+        }
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
+        Mockito.when(provider.generate()).thenAnswer(invocation -> 2L);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
-        vertex.property("key1", "value2");
+
+        Map<Neo4JPropertySamples, VertexProperty<?>> results = new HashMap<>(Neo4JPropertySamples.values().length);
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
+            try {
+                VertexProperty<?> res = vertex.property(sam.title, sam.value);
+                results.put(sam, res);
+            } catch (IllegalArgumentException ex) {
+                if (!sam.supported) continue;
+
+                StringBuffer sb = new StringBuffer("could not add property ")
+                        .append(" [").append(sam).append("] ")
+                        .append('\n' ).append("Stacktrace:").append('\n' );
+                for (StackTraceElement element : ex.getStackTrace()) {
+                    sb.append(element.toString()).append('\n');
+                    if (element.getClassName().equals(this.getClass().getCanonicalName())) break;
+                }
+                collector.addError(new Throwable(sb.toString()));
+            }
+        }
         // act
         vertex.rollback();
         // assert
-        Assert.assertNotNull(vertex.property("key1"));
-        Property<String> property = vertex.property("key1");
-        Assert.assertEquals("Failed to rollback property value", "value1", property.value());
+        for (Map.Entry<Neo4JPropertySamples, VertexProperty<?>> entry : results.entrySet()) {
+            Neo4JPropertySamples sam = entry.getKey();
+            Assert.assertNotNull(vertex.property(sam.title));
+            Property<?> property = vertex.property(sam.title);
+            if (!sam.supported) continue;
+            String errmsg = String.format("orig: %s, prop: %s", sam.toString(), property.toString());
+            Assert.assertTrue(errmsg, property.isPresent());
+            Assert.assertEquals(errmsg, sam.value2, property.value());
+        }
     }
 
     @Test
@@ -102,7 +136,25 @@ public class Neo4JVertexWhileRollbackTest {
         Mockito.when(provider.generate()).thenAnswer(invocation -> 2L);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         Neo4JVertex vertex = new Neo4JVertex(graph, session, provider, provider, node);
-        vertex.property("key1", "value2");
+
+        Map<Neo4JPropertySamples, VertexProperty<?>> results = new HashMap<>(Neo4JPropertySamples.values().length);
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
+
+            try {
+                results.put(sam, vertex.property(sam.title, sam.value));
+            } catch (IllegalArgumentException ex) {
+                if (!sam.supported) continue;
+
+                StringBuffer sb = new StringBuffer("could not add property ")
+                        .append(" [").append(sam).append("] ")
+                        .append('\n' ).append("Stacktrace:").append('\n' );
+                for (StackTraceElement element : ex.getStackTrace()) {
+                    sb.append(element.toString()).append('\n');
+                    if (element.getClassName().equals(this.getClass().getCanonicalName())) break;
+                }
+                collector.addError(new Throwable(sb.toString()));
+            }
+        }
         // act
         vertex.rollback();
         // assert
