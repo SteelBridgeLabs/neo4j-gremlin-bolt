@@ -22,9 +22,13 @@ import org.neo4j.driver.v1.Values;
 import org.neo4j.values.storable.CoordinateReferenceSystem;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @author Fredrick P. Eisele
+ */
 public enum Neo4JPropertySamples {
     BOOL("test-bool", true, true, false),
     LONG("test-long", true, 1L, 2L),
@@ -32,9 +36,13 @@ public enum Neo4JPropertySamples {
     STRING("test-string", true, "this is a test", "a second text"),
     POINT("test-point", false,
             Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0),
-            Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0));
-
-    // MAP("test-point", false,;
+            Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0)),
+    MAP("test-map", false,
+            Collections.singletonMap("key1","value1"),
+            Collections.singletonMap("key1","value2")),
+    LIST("test-map", false,
+            Collections.singletonList(5L),
+            Collections.singletonList(5L));
 
     public String title;
     public Boolean supported;

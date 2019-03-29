@@ -20,6 +20,9 @@ package com.steelbridgelabs.oss.neo4j.structure;
 
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.neo4j.driver.v1.types.Point;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -32,12 +35,14 @@ final class Neo4JBoltSupport {
 
     static void checkPropertyValue(Object value) {
         Objects.requireNonNull(value, "value cannot be null");
-        // check for supported types, TODO: Bolt supports List and Map values
+
         if (value instanceof Boolean) return;
         if (value instanceof Long) return;
         if (value instanceof Double) return;
         if (value instanceof String) return;
         if (value instanceof Point) return;
+        if (value instanceof Map) return;
+        if (value instanceof List) return;
         // throw exception
         throw Property.Exceptions.dataTypeOfPropertyValueNotSupported(value);
     }
