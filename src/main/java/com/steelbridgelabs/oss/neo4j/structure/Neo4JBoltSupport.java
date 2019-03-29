@@ -42,8 +42,10 @@ final class Neo4JBoltSupport {
         if (value instanceof Double) return;
         if (value instanceof String) return;
         if (value instanceof Point) return;
-        if (value instanceof Map) return;
-        if (value instanceof List) return;
+        // TODO: Support the Following
+        // if (value instanceof Map) return;
+        // if (value instanceof List) return;
+
         // throw exception
         throw Property.Exceptions.dataTypeOfPropertyValueNotSupported(value);
     }
