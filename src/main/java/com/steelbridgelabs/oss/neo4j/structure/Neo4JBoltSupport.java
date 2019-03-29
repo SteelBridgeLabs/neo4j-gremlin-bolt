@@ -19,6 +19,7 @@
 package com.steelbridgelabs.oss.neo4j.structure;
 
 import org.apache.tinkerpop.gremlin.structure.Property;
+import org.neo4j.driver.internal.value.PointValue;
 import org.neo4j.driver.v1.types.Point;
 
 import java.util.List;

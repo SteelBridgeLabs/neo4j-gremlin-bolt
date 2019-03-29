@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.neo4j.driver.internal.value.PointValue;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.types.Node;
 
@@ -100,7 +101,8 @@ public class Neo4JVertexWhileRollbackTest {
                         .append(" [").append(sam).append("] ")
                         .append('\n' ).append("Stacktrace:").append('\n' );
                 for (StackTraceElement element : ex.getStackTrace()) {
-                    sb.append(element.toString());
+                    sb.append(element.toString()).append('\n');
+                    if (element.getClassName().equals(this.getClass().getCanonicalName())) break;
                 }
                 collector.addError(new Throwable(sb.toString()));
             }
@@ -111,7 +113,7 @@ public class Neo4JVertexWhileRollbackTest {
         for (Map.Entry<Neo4JPropertySamples, VertexProperty<?>> entry : results.entrySet()) {
             Neo4JPropertySamples sam = entry.getKey();
             Assert.assertNotNull(vertex.property(sam.title));
-            Property<String> property = vertex.property(sam.title);
+            Property<?> property = vertex.property(sam.title);
             if (!sam.supported) continue;
             String errmsg = String.format("orig: %s, prop: %s", sam.toString(), property.toString());
             Assert.assertTrue(errmsg, property.isPresent());
@@ -147,7 +149,8 @@ public class Neo4JVertexWhileRollbackTest {
                         .append(" [").append(sam).append("] ")
                         .append('\n' ).append("Stacktrace:").append('\n' );
                 for (StackTraceElement element : ex.getStackTrace()) {
-                    sb.append(element.toString());
+                    sb.append(element.toString()).append('\n');
+                    if (element.getClassName().equals(this.getClass().getCanonicalName())) break;
                 }
                 collector.addError(new Throwable(sb.toString()));
             }

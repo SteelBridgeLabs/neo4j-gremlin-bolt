@@ -98,7 +98,8 @@ public class Neo4JVertexWhileAddingPropertyValueTest {
                         .append(" [").append(sam).append("] ")
                         .append('\n' ).append("Stacktrace:").append('\n' );
                 for (StackTraceElement element : ex.getStackTrace()) {
-                    sb.append(element.toString());
+                    sb.append(element.toString()).append('\n');
+                    if (element.getClassName().equals(this.getClass().getCanonicalName())) break;
                 }
                 collector.addError(new Throwable(sb.toString()));
             }

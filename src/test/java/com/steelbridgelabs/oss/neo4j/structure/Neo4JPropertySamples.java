@@ -34,12 +34,12 @@ public enum Neo4JPropertySamples {
     LONG("test-long", true, 1L, 2L),
     DOUBLE("test-double", true, 4.0, 5.6),
     STRING("test-string", true, "this is a test", "a second text"),
-    POINT("test-point", false,
-            Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0),
-            Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0)),
+    POINT("test-point", true,
+            Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0).asPoint(),
+            Values.point(CoordinateReferenceSystem.WGS84.getCode(), 120.0, -45.0).asPoint()),
     MAP("test-map", false,
-            Collections.singletonMap("key1","value1"),
-            Collections.singletonMap("key1","value2")),
+            Collections.singletonMap("key1", "value1"),
+            Collections.singletonMap("key1", "value2")),
     LIST("test-map", false,
             Collections.singletonList(5L),
             Collections.singletonList(5L));
@@ -64,6 +64,10 @@ public enum Neo4JPropertySamples {
             ret.add(sam.title);
         }
         return ret;
+    }
+
+     static public <T> T recast(Class<T> clazz, Object obj) {
+        return clazz.cast(obj);
     }
 
     @Override
