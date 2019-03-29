@@ -18,12 +18,15 @@
 
 package com.steelbridgelabs.oss.neo4j.structure;
 
+import org.neo4j.driver.v1.Values;
+import org.neo4j.values.storable.CoordinateReferenceSystem;
+
 public enum Neo4JPropertySamples {
     BOOL("test-bool", true),
     LONG("test-long", 1L),
     DOUBLE("test-double", 4.0),
     STRING("test-string", "this is a test"),
-    POINT("test-point", 6.28318);
+    POINT("test-point", Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0));
 
     public String title;
     public Object value;
