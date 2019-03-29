@@ -21,21 +21,50 @@ package com.steelbridgelabs.oss.neo4j.structure;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.values.storable.CoordinateReferenceSystem;
 
+import java.util.*;
+
 public enum Neo4JPropertySamples {
-    BOOL("test-bool", true),
-    LONG("test-long", 1L),
-    DOUBLE("test-double", 4.0),
-    STRING("test-string", "this is a test"),
-    POINT("test-point", Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0));
+    BOOL("test-bool", true, true, false),
+    LONG("test-long", true, 1L, 2L),
+    DOUBLE("test-double", true, 4.0, 5.6),
+    STRING("test-string", true, "this is a test", "a second text"),
+    POINT("test-point", false,
+            Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0),
+            Values.point(CoordinateReferenceSystem.WGS84.getCode(), 90.0, 45.0));
+
+    // MAP("test-point", false,;
 
     public String title;
+    public Boolean supported;
     public Object value;
+    public Object value2;
     public Class<?> clazz;
 
-    private Neo4JPropertySamples(String title, Object value) {
+    Neo4JPropertySamples(String title, Boolean supported, Object value, Object value2) {
         this.title = title;
+        this.supported = supported;
         this.value = value;
+        this.value2 = value2;
         this.clazz = value.getClass();
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder()
+                .append("title: ").append(this.title).append(", ")
+                .append("[").append(this.supported).append("] ")
+                .append(" ").append(this.clazz).append(" :: ")
+                .append("(").append(this.value)
+                .append(",").append(this.value2).append(")")
+                .toString();
+    }
+
+    static public Collection<String> getKeys() {
+        Set<String> ret = new HashSet<>(Neo4JPropertySamples.values().length);
+        for (Neo4JPropertySamples sam : Neo4JPropertySamples.values()) {
+            ret.add(sam.title);
+        }
+        return ret;
     }
 
 }
