@@ -34,6 +34,20 @@
     <!-- @SuppressWarnings java annotation -->
     <module name="SuppressWarningsFilter" />
 
+    <module name="SuppressionFilter">
+        <property name="file" value="checkstyle-suppressions.xml" />
+        <property name="optional" value="true" />
+    </module>
+
+    <module name="BeforeExecutionExclusionFileFilter">
+        <property name="fileNamePattern" value="module\-info\.java$" />
+    </module>
+
+    <module name="LineLength">
+        <property name="max" value="1000" />
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://" />
+    </module>
+
     <module name="TreeWalker">
         <module name="OuterTypeFilename" />
         <module name="IllegalTokenText">
@@ -46,10 +60,6 @@
             <property name="allowByTailComment" value="true" />
             <property name="allowNonPrintableEscapes" value="true" />
         </module>
-        <module name="LineLength">
-            <property name="max" value="800" />
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://" />
-        </module>
         <module name="AvoidStarImport" />
         <module name="OneTopLevelClass" />
         <module name="NoLineWrap" />
@@ -61,7 +71,6 @@
             <property name="tokens" value="LITERAL_DO" />
         </module>
         <module name="LeftCurly">
-            <property name="maxLineLength" value="800" />
         </module>
         <module name="RightCurly">
             <property name="option" value="alone" />
@@ -156,12 +165,12 @@
         </module>
         <module name="OverloadMethodsDeclarationOrder" />
         <module name="VariableDeclarationUsageDistance">
-            <property name="allowedDistance" value="8" />
+            <property name="allowedDistance" value="6" />
         </module>
         <module name="ImportOrder">
             <property name="groups" value="*,javax,java" />
             <property name="ordered" value="true" />
-            <property name="separated" value="false" />
+            <property name="separated" value="true" />
             <property name="option" value="bottom" />
             <property name="sortStaticImportsAlphabetically" value="true" />
         </module>
@@ -187,6 +196,7 @@
             <property name="exceptionVariableName" value="expected" />
         </module>
         <module name="CommentsIndentation" />
+
         <!-- support for @SuppressWarnings java annotation -->
         <module name="SuppressWarningsHolder" />
     </module>

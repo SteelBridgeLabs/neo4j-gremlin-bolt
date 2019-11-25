@@ -15,6 +15,7 @@
  *
  *  For more information: http://steelbridgelabs.com
  */
+
 package com.steelbridgelabs.oss.neo4j.structure.partitions;
 
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JReadPartition;
