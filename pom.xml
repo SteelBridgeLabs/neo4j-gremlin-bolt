@@ -58,11 +58,11 @@
 
     <properties>
         <!-- neo4j -->
-        <neo4j.version>1.6.1</neo4j.version>
+        <neo4j.version>4.0.0-rc1</neo4j.version>
         <!-- gremlin -->
-        <gremlin.version>3.3.3</gremlin.version>
+        <gremlin.version>3.4.4</gremlin.version>
         <!-- slf4j -->
-        <slf4j.version>1.7.25</slf4j.version>
+        <slf4j.version>1.7.29</slf4j.version>
         <!-- logback-classic -->
         <logback-classic.version>1.2.3</logback-classic.version>
         <!-- junit -->

@@ -28,13 +28,11 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.types.TypeRepresentation;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Statement;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.types.Node;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -303,11 +301,11 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
     @Override
     public String label() {
         // labels separated by "::"
-        return labels.stream().collect(Collectors.joining(LabelDelimiter));
+        return String.join(LabelDelimiter, labels);
     }
 
     public String[] labels() {
-        return labels.toArray(new String[labels.size()]);
+        return labels.toArray(new String[0]);
     }
 
     public boolean addLabel(String label) {
@@ -491,10 +489,8 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
                     processEdgesWhereClause("m", identifiers, "r", builder, parameters);
                     // return
                     builder.append(" RETURN n, r, m");
-                    // create statement
-                    Statement statement = new Statement(builder.toString(), parameters);
                     // execute statement
-                    StatementResult result = session.executeStatement(statement);
+                    Result result = session.executeStatement(builder.toString(), parameters);
                     // execute command
                     Stream<Edge> query = session.edges(result);
                     // edges in memory plus the ones in database (return copy since edges can be deleted in the middle of the loop)
@@ -534,10 +530,8 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
                     processEdgesWhereClause("m", identifiers, "r", builder, parameters);
                     // return
                     builder.append(" RETURN n, r, m");
-                    // create statement
-                    Statement statement = new Statement(builder.toString(), parameters);
                     // execute statement
-                    StatementResult result = session.executeStatement(statement);
+                    Result result = session.executeStatement(builder.toString(), parameters);
                     // execute command
                     Stream<Edge> query = session.edges(result);
                     // edges in memory plus the ones in database (return copy since edges can be deleted in the middle of the loop)
@@ -573,10 +567,8 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
                 processEdgesWhereClause("m", identifiers, "r", builder, parameters);
                 // return
                 builder.append(" RETURN n, r, m");
-                // create statement
-                Statement statement = new Statement(builder.toString(), parameters);
                 // execute statement
-                StatementResult result = session.executeStatement(statement);
+                Result result = session.executeStatement(builder.toString(), parameters);
                 // execute command
                 Stream<Edge> query = session.edges(result);
                 // edges in memory plus the ones in database (return copy since edges can be deleted in the middle of the loop)
@@ -635,10 +627,8 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
                     processEdgesWhereClause("m", identifiers, "r", builder, parameters);
                     // return
                     builder.append(" RETURN m");
-                    // create statement
-                    Statement statement = new Statement(builder.toString(), parameters);
                     // execute statement
-                    StatementResult result = session.executeStatement(statement);
+                    Result result = session.executeStatement(builder.toString(), parameters);
                     // execute command
                     Stream<Vertex> query = session.vertices(result);
                     // return copy since elements can be deleted in the middle of the loop
@@ -674,10 +664,8 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
                     processEdgesWhereClause("m", identifiers, "r", builder, parameters);
                     // return
                     builder.append(" RETURN m");
-                    // create statement
-                    Statement statement = new Statement(builder.toString(), parameters);
                     // execute statement
-                    StatementResult result = session.executeStatement(statement);
+                    Result result = session.executeStatement(builder.toString(), parameters);
                     // execute command
                     Stream<Vertex> query = session.vertices(result);
                     // return copy since elements can be deleted in the middle of the loop
@@ -709,10 +697,8 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
                 processEdgesWhereClause("m", identifiers, "r", builder, parameters);
                 // return
                 builder.append(" RETURN m");
-                // create statement
-                Statement statement = new Statement(builder.toString(), parameters);
                 // execute statement
-                StatementResult result = session.executeStatement(statement);
+                Result result = session.executeStatement(builder.toString(), parameters);
                 // execute command
                 Stream<Vertex> query = session.vertices(result);
                 // return copy since elements can be deleted in the middle of the loop
@@ -735,7 +721,6 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("unchecked")
     public <V> VertexProperty<V> property(VertexProperty.Cardinality cardinality, String name, V value, Object... keyValues) {
         ElementHelper.validateProperty(name, value);
         ElementHelper.legalPropertyKeyValueArray(keyValues);
@@ -954,13 +939,13 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
         SortedSet<String> labels = Stream.concat(this.labels.stream(), additionalLabels.stream()).collect(Collectors.toCollection(TreeSet::new));
         try {
             // parameters
-            Value parameters = Values.parameters("vp", statementParameters());
+            Map<String, Object> parameters = Collections.singletonMap("vp", statementParameters());
             // check database side id generation is required
             if (id == null) {
                 // create statement
                 String statement = "CREATE (n" + processLabels(labels, false) + "{vp}) RETURN " + vertexIdProvider.matchPredicateOperand("n");
                 // command statement
-                return new Neo4JDatabaseCommand(new Statement(statement, parameters), result -> {
+                return new Neo4JDatabaseCommand(statement, parameters, result -> {
                     // check we received data
                     if (result.hasNext()) {
                         // record
@@ -971,7 +956,7 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
                 });
             }
             // command statement
-            return new Neo4JDatabaseCommand(new Statement("CREATE (" + processLabels(labels, false) + "{vp})", parameters));
+            return new Neo4JDatabaseCommand("CREATE (" + processLabels(labels, false) + "{vp})", parameters);
         }
         finally {
             // to find vertex in database (labels + additional labels)
@@ -1009,7 +994,7 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
                 builder.append(" REMOVE v").append(processLabels(labelsRemoved, false));
             }
             // command statement
-            return new Neo4JDatabaseCommand(new Statement(builder.toString(), parameters));
+            return new Neo4JDatabaseCommand(builder.toString(), parameters);
         }
         return null;
     }
@@ -1019,9 +1004,9 @@ public class Neo4JVertex extends Neo4JElement implements Vertex {
         // create statement
         String statement = "MATCH " + matchPattern("v") + " WHERE " + matchPredicate("v", "id") + " DETACH DELETE v";
         // parameters
-        Value parameters = Values.parameters("id", id());
+        Map<String, Object> parameters = Collections.singletonMap("id", id());
         // command statement
-        return new Neo4JDatabaseCommand(new Statement(statement, parameters));
+        return new Neo4JDatabaseCommand(statement, parameters);
     }
 
     void commit() {

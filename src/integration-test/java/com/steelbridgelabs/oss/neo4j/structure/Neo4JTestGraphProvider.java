@@ -24,9 +24,8 @@ import org.apache.tinkerpop.gremlin.AbstractGraphProvider;
 import org.apache.tinkerpop.gremlin.LoadGraphWith;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.Statement;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -41,7 +40,7 @@ import java.util.stream.StreamSupport;
  */
 public class Neo4JTestGraphProvider extends AbstractGraphProvider {
 
-    private static final Set<Class> implementations = new HashSet<Class>() {{
+    private static final Set<Class> implementations = new HashSet<>() {{
         add(Neo4JEdge.class);
         add(Neo4JGraph.class);
         add(Neo4JVertex.class);
@@ -76,11 +75,11 @@ public class Neo4JTestGraphProvider extends AbstractGraphProvider {
         // open session
         try (Session session = driver.session()) {
             // begin transaction
-            try (org.neo4j.driver.v1.Transaction transaction = session.beginTransaction()) {
+            try (org.neo4j.driver.Transaction transaction = session.beginTransaction()) {
                 // delete everything in database
-                transaction.run(new Statement("MATCH (n) DETACH DELETE n"));
+                transaction.run("MATCH (n) DETACH DELETE n");
                 // commit
-                transaction.success();
+                transaction.commit();
             }
         }
     }

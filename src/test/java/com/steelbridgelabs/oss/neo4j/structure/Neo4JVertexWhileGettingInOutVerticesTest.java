@@ -26,15 +26,13 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Statement;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.summary.ResultSummary;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.Node;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -78,9 +76,6 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
     private Graph.Features features;
 
     @Mock
-    private Neo4JVertex otherVertex;
-
-    @Mock
     private Neo4JVertex vertex1;
 
     @Mock
@@ -99,7 +94,7 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
     private Neo4JEdge edge4;
 
     @Mock
-    private StatementResult statementResult;
+    private Result statementResult;
 
     @Mock
     private ResultSummary resultSummary;
@@ -123,8 +118,8 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
         Mockito.when(edgeIdProvider.get(Mockito.any())).thenAnswer(invocation -> 2L);
         Mockito.when(edgeIdProvider.fieldName()).thenAnswer(invocation -> "id");
         Mockito.when(edgeIdProvider.matchPredicateOperand(Mockito.any())).thenAnswer(invocation -> "r.id");
-        Mockito.when(session.executeStatement(Mockito.eq(new Statement("MATCH (n:`l1`)-[r]-(m) WHERE n.id = {id} RETURN m", Collections.singletonMap("id", 1L))))).thenAnswer(invocation -> statementResult);
-        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Arrays.asList(vertex1, vertex3).stream());
+        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`l1`)-[r]-(m) WHERE n.id = {id} RETURN m"), Mockito.eq(Collections.singletonMap("id", 1L)))).thenAnswer(invocation -> statementResult);
+        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Stream.of(vertex1, vertex3));
         Mockito.when(statementResult.consume()).thenAnswer(invocation -> resultSummary);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, vertexIdProvider, edgeIdProvider, node);
         // act
@@ -170,8 +165,8 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
         Mockito.when(edge4.label()).thenAnswer(invocation -> "EL2");
         Mockito.when(edge4.outVertex()).thenAnswer(invocation -> vertex4);
         Mockito.when(edge4.id()).thenAnswer(invocation -> 4000L);
-        Mockito.when(session.executeStatement(Mockito.eq(new Statement("MATCH (n:`l1`)-[r]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m", parameters)))).thenAnswer(invocation -> statementResult);
-        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Arrays.asList(vertex1, vertex3).stream());
+        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`l1`)-[r]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m"), Mockito.eq(parameters))).thenAnswer(invocation -> statementResult);
+        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Stream.of(vertex1, vertex3));
         Mockito.when(statementResult.consume()).thenAnswer(invocation -> resultSummary);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, vertexIdProvider, edgeIdProvider, node);
         vertex.addOutEdge(edge2);
@@ -223,8 +218,8 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
         Mockito.when(edge4.label()).thenAnswer(invocation -> "EL1");
         Mockito.when(edge4.outVertex()).thenAnswer(invocation -> vertex4);
         Mockito.when(edge4.id()).thenAnswer(invocation -> 4000L);
-        Mockito.when(session.executeStatement(Mockito.eq(new Statement("MATCH (n:`l1`)-[r:`EL1`]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m", parameters)))).thenAnswer(invocation -> statementResult);
-        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Arrays.asList(vertex1, vertex3).stream());
+        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`l1`)-[r:`EL1`]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m"), Mockito.eq(parameters))).thenAnswer(invocation -> statementResult);
+        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Stream.of(vertex1, vertex3));
         Mockito.when(statementResult.consume()).thenAnswer(invocation -> resultSummary);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, vertexIdProvider, edgeIdProvider, node);
         vertex.addOutEdge(edge2);
@@ -276,8 +271,8 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
         Mockito.when(edge4.label()).thenAnswer(invocation -> "EL2");
         Mockito.when(edge4.outVertex()).thenAnswer(invocation -> vertex4);
         Mockito.when(edge4.id()).thenAnswer(invocation -> 4000L);
-        Mockito.when(session.executeStatement(Mockito.eq(new Statement("MATCH (n:`l1`)-[r:`EL2`|:`EL1`]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m", parameters)))).thenAnswer(invocation -> statementResult);
-        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Arrays.asList(vertex1, vertex3).stream());
+        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`l1`)-[r:`EL2`|:`EL1`]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m"), Mockito.eq(parameters))).thenAnswer(invocation -> statementResult);
+        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Stream.of(vertex1, vertex3));
         Mockito.when(statementResult.consume()).thenAnswer(invocation -> resultSummary);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, vertexIdProvider, edgeIdProvider, node);
         vertex.addOutEdge(edge2);
@@ -329,8 +324,8 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
         Mockito.when(edge4.label()).thenAnswer(invocation -> "EL2");
         Mockito.when(edge4.outVertex()).thenAnswer(invocation -> vertex4);
         Mockito.when(edge4.id()).thenAnswer(invocation -> 4000L);
-        Mockito.when(session.executeStatement(Mockito.eq(new Statement("MATCH (n:`l1`)-[r:`EL1`]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m", parameters)))).thenAnswer(invocation -> statementResult);
-        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Arrays.asList(vertex1, vertex3).stream());
+        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`l1`)-[r:`EL1`]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m"), Mockito.eq(parameters))).thenAnswer(invocation -> statementResult);
+        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Stream.of(vertex1, vertex3));
         Mockito.when(statementResult.consume()).thenAnswer(invocation -> resultSummary);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, vertexIdProvider, edgeIdProvider, node);
         vertex.addOutEdge(edge2);
@@ -378,7 +373,7 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
         Mockito.when(edge4.label()).thenAnswer(invocation -> "EL2");
         Mockito.when(edge4.outVertex()).thenAnswer(invocation -> vertex4);
         Mockito.when(edge4.id()).thenAnswer(invocation -> 4000L);
-        Mockito.when(session.executeStatement(Mockito.eq(new Statement("MATCH (n:`l1`)-[r:`EL2`]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m", parameters)))).thenAnswer(invocation -> statementResult);
+        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`l1`)-[r:`EL2`]-(m) WHERE n.id = {id} AND NOT r.id IN {ids} RETURN m"), Mockito.eq(parameters))).thenAnswer(invocation -> statementResult);
         Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Stream.empty());
         Mockito.when(statementResult.consume()).thenAnswer(invocation -> resultSummary);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, vertexIdProvider, edgeIdProvider, node);
@@ -415,8 +410,8 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
         Mockito.when(edgeIdProvider.get(Mockito.any())).thenAnswer(invocation -> 2L);
         Mockito.when(edgeIdProvider.fieldName()).thenAnswer(invocation -> "id");
         Mockito.when(edgeIdProvider.matchPredicateOperand(Mockito.any())).thenAnswer(invocation -> "r.id");
-        Mockito.when(session.executeStatement(Mockito.eq(new Statement("MATCH (n:`P1`:`P2`:`l1`)-[r]-(m:`P1`:`P2`) WHERE n.id = {id} RETURN m", Collections.singletonMap("id", 1L))))).thenAnswer(invocation -> statementResult);
-        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Arrays.asList(vertex1, vertex3).stream());
+        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`P1`:`P2`:`l1`)-[r]-(m:`P1`:`P2`) WHERE n.id = {id} RETURN m"), Mockito.eq(Collections.singletonMap("id", 1L)))).thenAnswer(invocation -> statementResult);
+        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Stream.of(vertex1, vertex3));
         Mockito.when(statementResult.consume()).thenAnswer(invocation -> resultSummary);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, vertexIdProvider, edgeIdProvider, node);
         // act
@@ -451,8 +446,8 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
         Mockito.when(edgeIdProvider.get(Mockito.any())).thenAnswer(invocation -> 2L);
         Mockito.when(edgeIdProvider.fieldName()).thenAnswer(invocation -> "id");
         Mockito.when(edgeIdProvider.matchPredicateOperand(Mockito.any())).thenAnswer(invocation -> "r.id");
-        Mockito.when(session.executeStatement(Mockito.eq(new Statement("MATCH (n:`P1`:`l1`)-[r]-(m) WHERE n.id = {id} AND (m:`P1` OR m:`P2`) RETURN m", Collections.singletonMap("id", 1L))))).thenAnswer(invocation -> statementResult);
-        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Arrays.asList(vertex1, vertex3).stream());
+        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`P1`:`l1`)-[r]-(m) WHERE n.id = {id} AND (m:`P1` OR m:`P2`) RETURN m"), Mockito.eq(Collections.singletonMap("id", 1L)))).thenAnswer(invocation -> statementResult);
+        Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Stream.of(vertex1, vertex3));
         Mockito.when(statementResult.consume()).thenAnswer(invocation -> resultSummary);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, vertexIdProvider, edgeIdProvider, node);
         // act

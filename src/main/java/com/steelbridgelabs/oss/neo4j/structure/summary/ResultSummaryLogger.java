@@ -19,11 +19,11 @@
 package com.steelbridgelabs.oss.neo4j.structure.summary;
 
 import org.apache.commons.lang.StringUtils;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.summary.InputPosition;
-import org.neo4j.driver.v1.summary.Notification;
-import org.neo4j.driver.v1.summary.ProfiledPlan;
-import org.neo4j.driver.v1.summary.ResultSummary;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.summary.InputPosition;
+import org.neo4j.driver.summary.Notification;
+import org.neo4j.driver.summary.ProfiledPlan;
+import org.neo4j.driver.summary.ResultSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,12 +106,12 @@ public class ResultSummaryLogger {
 
         private void add(ProfileInformationDetails information) {
             // update statistics
-            operatorLength = information.operator.length() - 2 > operatorLength ? information.operator.length() - 2 : operatorLength;
-            estimatedRowsLength = information.estimatedRows.length() > estimatedRowsLength ? information.estimatedRows.length() : estimatedRowsLength;
-            rowsLength = information.rows.length() > rowsLength ? information.rows.length() : rowsLength;
-            dbHitsLength = information.dbHits.length() > dbHitsLength ? information.dbHits.length() : dbHitsLength;
-            variablesLength = information.variables.length() > variablesLength ? information.variables.length() : variablesLength;
-            otherInformationLength = information.otherInformation.length() > otherInformationLength ? information.otherInformation.length() : otherInformationLength;
+            operatorLength = Math.max(information.operator.length() - 2, operatorLength);
+            estimatedRowsLength = Math.max(information.estimatedRows.length(), estimatedRowsLength);
+            rowsLength = Math.max(information.rows.length(), rowsLength);
+            dbHitsLength = Math.max(information.dbHits.length(), dbHitsLength);
+            variablesLength = Math.max(information.variables.length(), variablesLength);
+            otherInformationLength = Math.max(information.otherInformation.length(), otherInformationLength);
             // append to list
             details.add(information);
         }
@@ -248,7 +248,7 @@ public class ResultSummaryLogger {
             // create builder
             StringBuilder builder = new StringBuilder();
             // append statement
-            builder.append("Profile for CYPHER statement: ").append(summary.statement()).append("\n");
+            builder.append("Profile for CYPHER statement: ").append(summary.query().text()).append("\n");
             // create profile information
             ProfileInformation profileInformation = new ProfileInformation();
             // process profile
@@ -265,7 +265,7 @@ public class ResultSummaryLogger {
                 // position if any
                 InputPosition position = notification.position();
                 // log information
-                logger.warn("CYPHER statement [{}] notification; severity: {}, code: {}, title: {}, description: {}{}", summary.statement(), notification.severity(), notification.code(), notification.title(), notification.description(), position != null ? ", [line: " + position.line() + ", position: " + position.column() + ", offset: " + position.offset() + "]" : "");
+                logger.warn("CYPHER statement [{}] notification; severity: {}, code: {}, title: {}, description: {}{}", summary.query().text(), notification.severity(), notification.code(), notification.title(), notification.description(), position != null ? ", [line: " + position.line() + ", position: " + position.column() + ", offset: " + position.offset() + "]" : "");
             }
         }
     }

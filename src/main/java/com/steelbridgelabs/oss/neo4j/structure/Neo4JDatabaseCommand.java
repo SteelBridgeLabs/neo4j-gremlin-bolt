@@ -18,9 +18,9 @@
 
 package com.steelbridgelabs.oss.neo4j.structure;
 
-import org.neo4j.driver.v1.Statement;
-import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.Result;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -28,27 +28,34 @@ import java.util.function.Consumer;
  */
 class Neo4JDatabaseCommand {
 
-    private static final Consumer<StatementResult> noop = result -> {
+    private static final Consumer<Result> noop = result -> {
     };
 
-    private final Statement statement;
-    private final Consumer<StatementResult> callback;
+    private final String statement;
+    private final Map<String, Object> parameters;
+    private final Consumer<Result> callback;
 
-    public Neo4JDatabaseCommand(Statement statement) {
+    public Neo4JDatabaseCommand(String statement, Map<String, Object> parameters) {
         this.statement = statement;
+        this.parameters = parameters;
         this.callback = noop;
     }
 
-    public Neo4JDatabaseCommand(Statement statement, Consumer<StatementResult> callback) {
+    public Neo4JDatabaseCommand(String statement, Map<String, Object> parameters, Consumer<Result> callback) {
         this.statement = statement;
+        this.parameters = parameters;
         this.callback = callback;
     }
 
-    public Statement getStatement() {
+    public String getStatement() {
         return statement;
     }
 
-    public Consumer<StatementResult> getCallback() {
+    public Map<String, Object> getParameters() {
+        return parameters;
+    }
+
+    public Consumer<Result> getCallback() {
         return callback;
     }
 }

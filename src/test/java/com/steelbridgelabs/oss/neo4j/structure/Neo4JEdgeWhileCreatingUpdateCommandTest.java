@@ -25,13 +25,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.summary.ResultSummary;
-import org.neo4j.driver.v1.types.Entity;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.Relationship;
 
 import java.util.Collections;
 
@@ -63,7 +63,7 @@ public class Neo4JEdgeWhileCreatingUpdateCommandTest {
     private Transaction transaction;
 
     @Mock
-    private StatementResult statementResult;
+    private Result statementResult;
 
     @Mock
     private Record record;
@@ -107,8 +107,8 @@ public class Neo4JEdgeWhileCreatingUpdateCommandTest {
         // assert
         Assert.assertNotNull("Failed to create insert command", command);
         Assert.assertNotNull("Failed to create insert command statement", command.getStatement());
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().text(), "MATCH (o) WHERE ID(o) = {oid} MATCH (i) WHERE ID(i) = {iid} MATCH (o)-[r:`label`]->(i) WHERE ID(r) = {id} DELETE r");
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().parameters(), Values.parameters("oid", 1L, "iid", 2L, "id", 3L));
+        Assert.assertEquals("Invalid insert command statement", command.getStatement(), "MATCH (o) WHERE ID(o) = {oid} MATCH (i) WHERE ID(i) = {iid} MATCH (o)-[r:`label`]->(i) WHERE ID(r) = {id} DELETE r");
+        Assert.assertEquals("Invalid insert command statement parameters", command.getParameters().size(), 3);
         Assert.assertNotNull("Failed to create insert command callback", command.getCallback());
         // invoke callback
         command.getCallback().accept(statementResult);

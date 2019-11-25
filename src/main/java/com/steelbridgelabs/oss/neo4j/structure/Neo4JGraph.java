@@ -30,10 +30,11 @@ import org.apache.tinkerpop.gremlin.structure.util.AbstractThreadLocalTransactio
 import org.apache.tinkerpop.gremlin.structure.util.GraphFactoryClass;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.apache.tinkerpop.gremlin.structure.util.TransactionException;
-import org.neo4j.driver.v1.AccessMode;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Statement;
-import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.AccessMode;
+import org.neo4j.driver.Bookmark;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.SessionConfig;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -106,13 +107,14 @@ public class Neo4JGraph implements Graph {
     private final Neo4JReadPartition partition;
     private final Set<String> vertexLabels;
     private final Driver driver;
+    private final String database;
     private final Neo4JElementIdProvider<?> vertexIdProvider;
     private final Neo4JElementIdProvider<?> edgeIdProvider;
     private final ThreadLocal<Neo4JSession> session = ThreadLocal.withInitial(() -> null);
     private final Neo4JTransaction transaction = new Neo4JTransaction();
     private final Configuration configuration;
     private final boolean readonly;
-    private final Iterable<String> bookmarks;
+    private final Iterable<Bookmark> bookmarks;
 
     private final Set<Consumer<Neo4JGraph>> closeListeners = new HashSet<>();
 
@@ -132,6 +134,38 @@ public class Neo4JGraph implements Graph {
         this.vertexLabels = Collections.emptySet();
         // store driver instance
         this.driver = driver;
+        // database
+        this.database = null;
+        // store providers
+        this.vertexIdProvider = vertexIdProvider;
+        this.edgeIdProvider = edgeIdProvider;
+        // graph factory configuration (required for tinkerpop test suite)
+        this.configuration = null;
+        // general purpose graph
+        this.readonly = false;
+        this.bookmarks = null;
+    }
+
+    /**
+     * Creates a {@link Neo4JGraph} instance.
+     *
+     * @param driver           The {@link Driver} instance with the database connection information.
+     * @param database         The database name.
+     * @param vertexIdProvider The {@link Neo4JElementIdProvider} for the {@link Vertex} id generation.
+     * @param edgeIdProvider   The {@link Neo4JElementIdProvider} for the {@link Edge} id generation.
+     */
+    public Neo4JGraph(Driver driver, String database, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider) {
+        Objects.requireNonNull(driver, "driver cannot be null");
+        Objects.requireNonNull(database, "database cannot be null");
+        Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
+        Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
+        // no label partition
+        this.partition = new NoReadPartition();
+        this.vertexLabels = Collections.emptySet();
+        // store driver instance
+        this.driver = driver;
+        // database
+        this.database = database;
         // store providers
         this.vertexIdProvider = vertexIdProvider;
         this.edgeIdProvider = edgeIdProvider;
@@ -160,6 +194,8 @@ public class Neo4JGraph implements Graph {
         this.vertexLabels = Collections.emptySet();
         // store driver instance
         this.driver = driver;
+        // database
+        this.database = null;
         // store providers
         this.vertexIdProvider = vertexIdProvider;
         this.edgeIdProvider = edgeIdProvider;
@@ -167,7 +203,39 @@ public class Neo4JGraph implements Graph {
         this.configuration = null;
         // readonly & bookmarks
         this.readonly = readonly;
-        this.bookmarks = Arrays.asList(bookmarks);
+        this.bookmarks = Collections.singletonList(Bookmark.from(new HashSet<>(Arrays.asList(bookmarks))));
+    }
+
+    /**
+     * Creates a {@link Neo4JGraph} instance.
+     *
+     * @param driver           The {@link Driver} instance with the database connection information.
+     * @param database         The database name.
+     * @param vertexIdProvider The {@link Neo4JElementIdProvider} for the {@link Vertex} id generation.
+     * @param edgeIdProvider   The {@link Neo4JElementIdProvider} for the {@link Edge} id generation.
+     * @param readonly         {@code true} indicates the Graph instance will be used to read from the Neo4J database.
+     * @param bookmarks        The initial references to some previous transactions. Both null value and empty iterable are permitted, and indicate that the bookmarks do not exist or are unknown.
+     */
+    public Neo4JGraph(Driver driver, String database, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider, boolean readonly, String... bookmarks) {
+        Objects.requireNonNull(driver, "driver cannot be null");
+        Objects.requireNonNull(database, "database cannot be null");
+        Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
+        Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
+        // no label partition
+        this.partition = new NoReadPartition();
+        this.vertexLabels = Collections.emptySet();
+        // store driver instance
+        this.driver = driver;
+        // database
+        this.database = database;
+        // store providers
+        this.vertexIdProvider = vertexIdProvider;
+        this.edgeIdProvider = edgeIdProvider;
+        // graph factory configuration (required for tinkerpop test suite)
+        this.configuration = null;
+        // readonly & bookmarks
+        this.readonly = readonly;
+        this.bookmarks = Collections.singletonList(Bookmark.from(new HashSet<>(Arrays.asList(bookmarks))));
     }
 
     /**
@@ -189,6 +257,44 @@ public class Neo4JGraph implements Graph {
         this.partition = partition;
         this.vertexLabels = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(vertexLabels)));
         this.driver = driver;
+        // database
+        this.database = null;
+        // validate partition & additional labels
+        if (!partition.containsVertex(this.vertexLabels))
+            throw new IllegalArgumentException("Invalid vertexLabels, vertices created by the graph will not be part of the given partition");
+        // store providers
+        this.vertexIdProvider = vertexIdProvider;
+        this.edgeIdProvider = edgeIdProvider;
+        // graph factory configuration (required for tinkerpop test suite)
+        this.configuration = null;
+        // general purpose graph
+        this.readonly = false;
+        this.bookmarks = null;
+    }
+
+    /**
+     * Creates a {@link Neo4JGraph} instance with the given partition within the neo4j database.
+     *
+     * @param partition        The {@link Neo4JReadPartition} within the neo4j database.
+     * @param vertexLabels     The set of labels to append to vertices created by the {@link Neo4JGraph} session.
+     * @param driver           The {@link Driver} instance with the database connection information.
+     * @param database         The database name.
+     * @param vertexIdProvider The {@link Neo4JElementIdProvider} for the {@link Vertex} id generation.
+     * @param edgeIdProvider   The {@link Neo4JElementIdProvider} for the {@link Edge} id generation.
+     */
+    public Neo4JGraph(Neo4JReadPartition partition, String[] vertexLabels, Driver driver, String database, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider) {
+        Objects.requireNonNull(partition, "partition cannot be null");
+        Objects.requireNonNull(vertexLabels, "vertexLabels cannot be null");
+        Objects.requireNonNull(driver, "driver cannot be null");
+        Objects.requireNonNull(database, "database cannot be null");
+        Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
+        Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
+        // initialize fields
+        this.partition = partition;
+        this.vertexLabels = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(vertexLabels)));
+        this.driver = driver;
+        // database
+        this.database = database;
         // validate partition & additional labels
         if (!partition.containsVertex(this.vertexLabels))
             throw new IllegalArgumentException("Invalid vertexLabels, vertices created by the graph will not be part of the given partition");
@@ -223,6 +329,8 @@ public class Neo4JGraph implements Graph {
         this.partition = partition;
         this.vertexLabels = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(vertexLabels)));
         this.driver = driver;
+        // database
+        this.database = null;
         // validate partition & additional labels
         if (!partition.containsVertex(this.vertexLabels))
             throw new IllegalArgumentException("Invalid vertexLabels, vertices created by the graph will not be part of the given partition");
@@ -233,7 +341,45 @@ public class Neo4JGraph implements Graph {
         this.configuration = null;
         // readonly & bookmarks
         this.readonly = readonly;
-        this.bookmarks = Arrays.asList(bookmarks);
+        this.bookmarks = Collections.singletonList(Bookmark.from(new HashSet<>(Arrays.asList(bookmarks))));
+    }
+
+    /**
+     * Creates a {@link Neo4JGraph} instance with the given partition within the neo4j database.
+     *
+     * @param partition        The {@link Neo4JReadPartition} within the neo4j database.
+     * @param vertexLabels     The set of labels to append to vertices created by the {@link Neo4JGraph} session.
+     * @param driver           The {@link Driver} instance with the database connection information.
+     * @param database         The database name.
+     * @param vertexIdProvider The {@link Neo4JElementIdProvider} for the {@link Vertex} id generation.
+     * @param edgeIdProvider   The {@link Neo4JElementIdProvider} for the {@link Edge} id generation.
+     * @param readonly         {@code true} indicates the Graph instance will be used to read from the Neo4J database.
+     * @param bookmarks        The initial references to some previous transactions. Both null value and empty iterable are permitted, and indicate that the bookmarks do not exist or are unknown.
+     */
+    public Neo4JGraph(Neo4JReadPartition partition, String[] vertexLabels, Driver driver, String database, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider, boolean readonly, String... bookmarks) {
+        Objects.requireNonNull(partition, "partition cannot be null");
+        Objects.requireNonNull(vertexLabels, "vertexLabels cannot be null");
+        Objects.requireNonNull(driver, "driver cannot be null");
+        Objects.requireNonNull(database, "database cannot be null");
+        Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
+        Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
+        // initialize fields
+        this.partition = partition;
+        this.vertexLabels = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(vertexLabels)));
+        this.driver = driver;
+        // database
+        this.database = database;
+        // validate partition & additional labels
+        if (!partition.containsVertex(this.vertexLabels))
+            throw new IllegalArgumentException("Invalid vertexLabels, vertices created by the graph will not be part of the given partition");
+        // store providers
+        this.vertexIdProvider = vertexIdProvider;
+        this.edgeIdProvider = edgeIdProvider;
+        // graph factory configuration (required for tinkerpop test suite)
+        this.configuration = null;
+        // readonly & bookmarks
+        this.readonly = readonly;
+        this.bookmarks = Collections.singletonList(Bookmark.from(new HashSet<>(Arrays.asList(bookmarks))));
     }
 
     /**
@@ -257,6 +403,8 @@ public class Neo4JGraph implements Graph {
         this.partition = partition;
         this.vertexLabels = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(vertexLabels)));
         this.driver = driver;
+        // database
+        this.database = null;
         // validate partition & additional labels
         if (!partition.containsVertex(this.vertexLabels))
             throw new IllegalArgumentException("Invalid vertexLabels, vertices created by the graph will not be part of the given partition");
@@ -267,15 +415,60 @@ public class Neo4JGraph implements Graph {
         this.configuration = configuration;
         // general purpose graph
         this.readonly = readonly;
-        this.bookmarks = Arrays.asList(bookmarks);
+        this.bookmarks = Collections.singletonList(Bookmark.from(new HashSet<>(Arrays.asList(bookmarks))));
+    }
+
+    /**
+     * Creates a {@link Neo4JGraph} instance with the given partition within the neo4j database.
+     *
+     * @param partition        The {@link Neo4JReadPartition} within the neo4j database.
+     * @param vertexLabels     The set of labels to append to vertices created by the {@link Neo4JGraph} session.
+     * @param driver           The {@link Driver} instance with the database connection information.
+     * @param database         The database name.
+     * @param vertexIdProvider The {@link Neo4JElementIdProvider} for the {@link Vertex} id generation.
+     * @param edgeIdProvider   The {@link Neo4JElementIdProvider} for the {@link Edge} id generation.
+     * @param configuration    The {@link Configuration} used to create the {@link Graph} instance.
+     */
+    Neo4JGraph(Neo4JReadPartition partition, String[] vertexLabels, Driver driver, String database, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider, Configuration configuration, boolean readonly, String... bookmarks) {
+        Objects.requireNonNull(partition, "partition cannot be null");
+        Objects.requireNonNull(vertexLabels, "vertexLabels cannot be null");
+        Objects.requireNonNull(driver, "driver cannot be null");
+        Objects.requireNonNull(database, "database cannot be null");
+        Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
+        Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
+        Objects.requireNonNull(configuration, "configuration cannot be null");
+        // initialize fields
+        this.partition = partition;
+        this.vertexLabels = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(vertexLabels)));
+        this.driver = driver;
+        // database
+        this.database = database;
+        // validate partition & additional labels
+        if (!partition.containsVertex(this.vertexLabels))
+            throw new IllegalArgumentException("Invalid vertexLabels, vertices created by the graph will not be part of the given partition");
+        // store providers
+        this.vertexIdProvider = vertexIdProvider;
+        this.edgeIdProvider = edgeIdProvider;
+        // graph factory configuration (required for tinkerpop test suite)
+        this.configuration = configuration;
+        // general purpose graph
+        this.readonly = readonly;
+        this.bookmarks = Collections.singletonList(Bookmark.from(new HashSet<>(Arrays.asList(bookmarks))));
     }
 
     Neo4JSession currentSession() {
         // get current session
         Neo4JSession session = this.session.get();
         if (session == null) {
+            // session config
+            SessionConfig.Builder config = SessionConfig.builder()
+                .withDefaultAccessMode(readonly ? AccessMode.READ : AccessMode.WRITE)
+                .withBookmarks(bookmarks);
+            // set database if needed
+            if (database != null)
+                config.withDatabase(database);
             // create new session
-            session = new Neo4JSession(this, driver.session(readonly ? AccessMode.READ : AccessMode.WRITE, bookmarks), vertexIdProvider, edgeIdProvider, readonly);
+            session = new Neo4JSession(this, driver.session(config.build()), vertexIdProvider, edgeIdProvider, readonly);
             // attach it to current thread
             this.session.set(session);
         }
@@ -326,11 +519,11 @@ public class Neo4JGraph implements Graph {
      *
      * @return a reference to a previous transaction
      */
-    public String lastBookmark() {
+    public Set<String> lastBookmark() {
         // get current session
         Neo4JSession session = currentSession();
         // return bookmark in session
-        return session.lastBookmark();
+        return session.lastBookmark().values();
     }
 
     /**
@@ -363,7 +556,7 @@ public class Neo4JGraph implements Graph {
         // transaction should be ready for io operations
         transaction.readWrite();
         // execute statement
-        session.executeStatement(new Statement("CREATE INDEX ON :`" + label + "`(" + propertyName + ")"));
+        session.executeStatement("CREATE INDEX ON :`" + label + "`(" + propertyName + ")", Collections.emptyMap());
     }
 
     /**
@@ -395,14 +588,15 @@ public class Neo4JGraph implements Graph {
         return session.vertices(ids);
     }
 
-    public Iterator<Vertex> vertices(Statement statement) {
+    public Iterator<Vertex> vertices(String statement, Map<String, Object> parameters) {
         Objects.requireNonNull(statement, "statement cannot be null");
+        Objects.requireNonNull(parameters, "parameters cannot be null");
         // get current session
         Neo4JSession session = currentSession();
         // transaction should be ready for io operations
         transaction.readWrite();
         // execute statement
-        StatementResult result = session.executeStatement(statement);
+        Result result = session.executeStatement(statement, parameters);
         // find vertices
         Iterator<Vertex> iterator = session.vertices(result)
             .collect(Collectors.toCollection(LinkedList::new))
@@ -416,14 +610,7 @@ public class Neo4JGraph implements Graph {
     public Iterator<Vertex> vertices(String statement) {
         Objects.requireNonNull(statement, "statement cannot be null");
         // use overloaded method
-        return vertices(new Statement(statement));
-    }
-
-    public Iterator<Vertex> vertices(String statement, Map<String, Object> parameters) {
-        Objects.requireNonNull(statement, "statement cannot be null");
-        Objects.requireNonNull(parameters, "parameters cannot be null");
-        // use overloaded method
-        return vertices(new Statement(statement, parameters));
+        return vertices(statement, Collections.emptyMap());
     }
 
     /**
@@ -439,14 +626,15 @@ public class Neo4JGraph implements Graph {
         return session.edges(ids);
     }
 
-    public Iterator<Edge> edges(Statement statement) {
+    public Iterator<Edge> edges(String statement, Map<String, Object> parameters) {
         Objects.requireNonNull(statement, "statement cannot be null");
+        Objects.requireNonNull(parameters, "parameters cannot be null");
         // get current session
         Neo4JSession session = currentSession();
         // transaction should be ready for io operations
         transaction.readWrite();
         // execute statement
-        StatementResult result = session.executeStatement(statement);
+        Result result = session.executeStatement(statement, parameters);
         // find edges
         Iterator<Edge> iterator = session.edges(result)
             .collect(Collectors.toCollection(LinkedList::new))
@@ -460,44 +648,7 @@ public class Neo4JGraph implements Graph {
     public Iterator<Edge> edges(String statement) {
         Objects.requireNonNull(statement, "statement cannot be null");
         // use overloaded method
-        return edges(new Statement(statement));
-    }
-
-    public Iterator<Edge> edges(String statement, Map<String, Object> parameters) {
-        Objects.requireNonNull(statement, "statement cannot be null");
-        Objects.requireNonNull(parameters, "parameters cannot be null");
-        // use overloaded method
-        return edges(new Statement(statement, parameters));
-    }
-
-    /**
-     * Executes the given statement on the current {@link Graph} instance. WARNING: There is no
-     * guarantee that the results are confined within the current {@link Neo4JReadPartition}.
-     *
-     * @param statement The CYPHER statement.
-     * @return The {@link StatementResult} with the CYPHER statement execution results.
-     */
-    public StatementResult execute(Statement statement) {
-        Objects.requireNonNull(statement, "statement cannot be null");
-        // get current session
-        Neo4JSession session = currentSession();
-        // transaction should be ready for io operations
-        transaction.readWrite();
-        // find execute statement
-        return session.executeStatement(statement);
-    }
-
-    /**
-     * Executes the given statement on the current {@link Graph} instance. WARNING: There is no
-     * guarantee that the results are confined within the current {@link Neo4JReadPartition}.
-     *
-     * @param statement The CYPHER statement.
-     * @return The {@link StatementResult} with the CYPHER statement execution results.
-     */
-    public StatementResult execute(String statement) {
-        Objects.requireNonNull(statement, "statement cannot be null");
-        // use overloaded method
-        return execute(new Statement(statement));
+        return edges(statement, Collections.emptyMap());
     }
 
     /**
@@ -506,13 +657,30 @@ public class Neo4JGraph implements Graph {
      *
      * @param statement  The CYPHER statement.
      * @param parameters The CYPHER statement parameters.
-     * @return The {@link StatementResult} with the CYPHER statement execution results.
+     * @return The {@link Result} with the CYPHER statement execution results.
      */
-    public StatementResult execute(String statement, Map<String, Object> parameters) {
+    public Result execute(String statement, Map<String, Object> parameters) {
         Objects.requireNonNull(statement, "statement cannot be null");
         Objects.requireNonNull(parameters, "parameters cannot be null");
+        // get current session
+        Neo4JSession session = currentSession();
+        // transaction should be ready for io operations
+        transaction.readWrite();
+        // find execute statement
+        return session.executeStatement(statement, parameters);
+    }
+
+    /**
+     * Executes the given statement on the current {@link Graph} instance. WARNING: There is no
+     * guarantee that the results are confined within the current {@link Neo4JReadPartition}.
+     *
+     * @param statement The CYPHER statement.
+     * @return The {@link Result} with the CYPHER statement execution results.
+     */
+    public Result execute(String statement) {
+        Objects.requireNonNull(statement, "statement cannot be null");
         // use overloaded method
-        return execute(new Statement(statement, parameters));
+        return execute(statement, Collections.emptyMap());
     }
 
     public boolean isProfilerEnabled() {

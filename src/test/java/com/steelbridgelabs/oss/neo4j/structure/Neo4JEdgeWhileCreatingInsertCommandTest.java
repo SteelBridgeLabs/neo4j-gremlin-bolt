@@ -25,13 +25,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.summary.ResultSummary;
-import org.neo4j.driver.v1.types.Entity;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Entity;
 
 import java.util.Collections;
 
@@ -60,7 +57,7 @@ public class Neo4JEdgeWhileCreatingInsertCommandTest {
     private Transaction transaction;
 
     @Mock
-    private StatementResult statementResult;
+    private Result statementResult;
 
     @Mock
     private Record record;
@@ -70,9 +67,6 @@ public class Neo4JEdgeWhileCreatingInsertCommandTest {
 
     @Mock
     private Value value;
-
-    @Mock
-    private ResultSummary resultSummary;
 
     @Test
     public void givenNoIdGenerationProviderShouldCreateInsertCommand() {
@@ -100,8 +94,8 @@ public class Neo4JEdgeWhileCreatingInsertCommandTest {
         Assert.assertNull("Failed get node identifier", edge.id());
         Assert.assertNotNull("Failed to create insert command", command);
         Assert.assertNotNull("Failed to create insert command statement", command.getStatement());
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().text(), "MATCH (o) WHERE ID(o) = {oid} MATCH (i) WHERE ID(i) = {iid} CREATE (o)-[r:`L1`{ep}]->(i) RETURN ID(r)");
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().parameters(), Values.parameters("oid", 1L, "iid", 2L, "ep", Collections.emptyMap()));
+        Assert.assertEquals("Invalid insert command statement", command.getStatement(), "MATCH (o) WHERE ID(o) = {oid} MATCH (i) WHERE ID(i) = {iid} CREATE (o)-[r:`L1`{ep}]->(i) RETURN ID(r)");
+        Assert.assertEquals("Invalid insert command statement", command.getParameters(), ParameterUtils.createParameters("oid", 1L, "iid", 2L, "ep", Collections.emptyMap()));
         Assert.assertNotNull("Failed to create insert command callback", command.getCallback());
         // invoke callback
         command.getCallback().accept(statementResult);
@@ -135,8 +129,8 @@ public class Neo4JEdgeWhileCreatingInsertCommandTest {
         Assert.assertNotNull("Failed get node identifier", edge.id());
         Assert.assertNotNull("Failed to create insert command", command);
         Assert.assertNotNull("Failed to create insert command statement", command.getStatement());
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().text(), "MATCH (o) WHERE o.id = {oid} MATCH (i) WHERE i.id = {iid} CREATE (o)-[:`L1`{ep}]->(i)");
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().parameters(), Values.parameters("oid", 1L, "iid", 2L, "ep", Collections.singletonMap("id", 3L)));
+        Assert.assertEquals("Invalid insert command statement", command.getStatement(), "MATCH (o) WHERE o.id = {oid} MATCH (i) WHERE i.id = {iid} CREATE (o)-[:`L1`{ep}]->(i)");
+        Assert.assertEquals("Invalid insert command statement", command.getParameters(), ParameterUtils.createParameters("oid", 1L, "iid", 2L, "ep", Collections.singletonMap("id", 3L)));
         Assert.assertNotNull("Failed to create insert command callback", command.getCallback());
         // invoke callback
         command.getCallback().accept(statementResult);

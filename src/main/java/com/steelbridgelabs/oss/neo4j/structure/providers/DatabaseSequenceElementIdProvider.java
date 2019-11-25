@@ -19,13 +19,12 @@
 package com.steelbridgelabs.oss.neo4j.structure.providers;
 
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.Statement;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.types.Entity;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.types.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,8 +112,7 @@ public class DatabaseSequenceElementIdProvider implements Neo4JElementIdProvider
             // loop until we get an identifier value
             do {
                 // log information
-                if (logger.isDebugEnabled())
-                    logger.debug("About to request a pool of identifiers from database, maximum id: {}", max);
+                logger.debug("About to request a pool of identifiers from database, maximum id: {}", max);
                 // make sure only one thread gets a new range of identifiers
                 synchronized (monitor) {
                     // update maximum number in pool, do not switch the next two statements (in case another thread was executing the synchronized block while the current thread was waiting)
@@ -126,10 +124,8 @@ public class DatabaseSequenceElementIdProvider implements Neo4JElementIdProvider
                         try (Session session = driver.session()) {
                             // create transaction
                             try (Transaction transaction = session.beginTransaction()) {
-                                // create cypher command, reserve poolSize identifiers
-                                Statement statement = new Statement("MERGE (g:`" + sequenceNodeLabel + "`) ON CREATE SET g.nextId = 1 ON MATCH SET g.nextId = g.nextId + {poolSize} RETURN g.nextId", Collections.singletonMap("poolSize", poolSize));
                                 // execute statement
-                                StatementResult result = transaction.run(statement);
+                                Result result = transaction.run("MERGE (g:`" + sequenceNodeLabel + "`) ON CREATE SET g.nextId = 1 ON MATCH SET g.nextId = g.nextId + {poolSize} RETURN g.nextId", Collections.singletonMap("poolSize", poolSize));
                                 // process result
                                 if (result.hasNext()) {
                                     // get record
@@ -141,7 +137,7 @@ public class DatabaseSequenceElementIdProvider implements Neo4JElementIdProvider
                                     maximum.set(nextId);
                                 }
                                 // commit
-                                transaction.success();
+                                transaction.commit();
                             }
                         }
                         // update maximum number in pool
