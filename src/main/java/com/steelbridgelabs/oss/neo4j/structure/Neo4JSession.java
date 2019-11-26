@@ -29,6 +29,7 @@ import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
@@ -781,6 +782,39 @@ class Neo4JSession implements AutoCloseable {
     }
 
     Result executeStatement(String statement, Map<String, Object> parameters) {
+        try {
+            // statement (we are modifying text)
+            String cypherStatement = statement;
+            // check we need to modify statement
+            if (profilerEnabled) {
+                // statement text
+                String text = statement;
+                if (text != null) {
+                    // use upper case
+                    text = text.toUpperCase(Locale.US);
+                    // check we can append PROFILE to current statement
+                    if (!text.startsWith("PROFILE") && !text.startsWith("EXPLAIN")) {
+                        // create new statement
+                        cypherStatement = "PROFILE " + statement;
+                    }
+                }
+            }
+            // log information
+            if (logger.isDebugEnabled())
+                logger.debug("Executing Cypher statement on transaction [{}]: {}", transaction.hashCode(), cypherStatement);
+            // execute on transaction
+            return transaction.run(cypherStatement, parameters);
+        }
+        catch (ClientException ex) {
+            // log error
+            if (logger.isErrorEnabled())
+                logger.error("Error executing Cypher statement on transaction [{}]", transaction.hashCode(), ex);
+            // throw original exception
+            throw ex;
+        }
+    }
+
+    Result executeStatement(String statement, Value parameters) {
         try {
             // statement (we are modifying text)
             String cypherStatement = statement;

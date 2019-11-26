@@ -35,6 +35,7 @@ import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.Value;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -607,6 +608,25 @@ public class Neo4JGraph implements Graph {
         return iterator;
     }
 
+    public Iterator<Vertex> vertices(String statement, Value parameters) {
+        Objects.requireNonNull(statement, "statement cannot be null");
+        Objects.requireNonNull(parameters, "parameters cannot be null");
+        // get current session
+        Neo4JSession session = currentSession();
+        // transaction should be ready for io operations
+        transaction.readWrite();
+        // execute statement
+        Result result = session.executeStatement(statement, parameters);
+        // find vertices
+        Iterator<Vertex> iterator = session.vertices(result)
+            .collect(Collectors.toCollection(LinkedList::new))
+            .iterator();
+        // process summary (query has been already consumed by collect)
+        ResultSummaryLogger.log(result.consume());
+        // return iterator
+        return iterator;
+    }
+
     public Iterator<Vertex> vertices(String statement) {
         Objects.requireNonNull(statement, "statement cannot be null");
         // use overloaded method
@@ -627,6 +647,25 @@ public class Neo4JGraph implements Graph {
     }
 
     public Iterator<Edge> edges(String statement, Map<String, Object> parameters) {
+        Objects.requireNonNull(statement, "statement cannot be null");
+        Objects.requireNonNull(parameters, "parameters cannot be null");
+        // get current session
+        Neo4JSession session = currentSession();
+        // transaction should be ready for io operations
+        transaction.readWrite();
+        // execute statement
+        Result result = session.executeStatement(statement, parameters);
+        // find edges
+        Iterator<Edge> iterator = session.edges(result)
+            .collect(Collectors.toCollection(LinkedList::new))
+            .iterator();
+        // process summary (query has been already consumed by collect)
+        ResultSummaryLogger.log(result.consume());
+        // return iterator
+        return iterator;
+    }
+
+    public Iterator<Edge> edges(String statement, Value parameters) {
         Objects.requireNonNull(statement, "statement cannot be null");
         Objects.requireNonNull(parameters, "parameters cannot be null");
         // get current session
