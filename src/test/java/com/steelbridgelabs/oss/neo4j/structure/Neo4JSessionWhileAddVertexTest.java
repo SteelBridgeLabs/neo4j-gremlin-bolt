@@ -30,10 +30,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.Statement;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.summary.ResultSummary;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.summary.ResultSummary;
 
 import java.util.Iterator;
 
@@ -65,10 +64,10 @@ public class Neo4JSessionWhileAddVertexTest {
     private Session session;
 
     @Mock
-    private org.neo4j.driver.v1.Transaction neo4jTransaction;
+    private org.neo4j.driver.Transaction neo4jTransaction;
 
     @Mock
-    private StatementResult statementResult;
+    private Result statementResult;
 
     @Mock
     private ResultSummary resultSummary;
@@ -181,7 +180,7 @@ public class Neo4JSessionWhileAddVertexTest {
             // act
             Iterator<Vertex> vertices = session.vertices(new Object[]{1L});
             // assert
-            Assert.assertNotNull("Failed to find vertex", vertices.hasNext());
+            Assert.assertTrue("Failed to find vertex", vertices.hasNext());
             Vertex vertex = vertices.next();
             Assert.assertNotNull("Failed to create vertex", vertex);
             Assert.assertEquals("Failed to assign vertex label", Vertex.DEFAULT_LABEL, vertex.label());
@@ -189,12 +188,13 @@ public class Neo4JSessionWhileAddVertexTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void givenNewVertexWithIdShouldBeAvailableOnAllIdsQueries() {
         // arrange
         Mockito.when(graph.tx()).thenAnswer(invocation -> transaction);
         Mockito.when(graph.getPartition()).thenAnswer(invocation -> partition);
         Mockito.when(session.beginTransaction()).then(invocation -> neo4jTransaction);
-        Mockito.when(neo4jTransaction.run(Mockito.any(Statement.class))).then(invocation -> statementResult);
+        Mockito.when(neo4jTransaction.run(Mockito.any(String.class), Mockito.anyMap())).then(invocation -> statementResult);
         Mockito.when(statementResult.hasNext()).then(invocation -> false);
         Mockito.when(statementResult.consume()).then(invocation -> resultSummary);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
@@ -203,29 +203,30 @@ public class Neo4JSessionWhileAddVertexTest {
         Mockito.when(provider.processIdentifier(argument.capture())).thenAnswer(invocation -> argument.getValue());
         try (Neo4JSession session = new Neo4JSession(graph, this.session, provider, provider, false)) {
             // transaction
-            try (org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+            try (org.neo4j.driver.Transaction tx = session.beginTransaction()) {
                 // add vertex
                 session.addVertex();
                 // act
                 Iterator<Vertex> vertices = session.vertices(new Object[0]);
                 // assert
-                Assert.assertNotNull("Failed to find vertex", vertices.hasNext());
+                Assert.assertTrue("Failed to find vertex", vertices.hasNext());
                 Vertex vertex = vertices.next();
                 Assert.assertNotNull("Failed to create vertex", vertex);
                 Assert.assertEquals("Failed to assign vertex label", Vertex.DEFAULT_LABEL, vertex.label());
                 // commit
-                tx.success();
+                tx.commit();
             }
         }
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void givenNewVertexWithoutIdShouldBeAvailableOnAllIdsQueries() {
         // arrange
         Mockito.when(graph.tx()).thenAnswer(invocation -> transaction);
         Mockito.when(graph.getPartition()).thenAnswer(invocation -> partition);
         Mockito.when(session.beginTransaction()).then(invocation -> neo4jTransaction);
-        Mockito.when(neo4jTransaction.run(Mockito.any(Statement.class))).then(invocation -> statementResult);
+        Mockito.when(neo4jTransaction.run(Mockito.any(String.class), Mockito.anyMap())).then(invocation -> statementResult);
         Mockito.when(statementResult.hasNext()).then(invocation -> false);
         Mockito.when(statementResult.consume()).then(invocation -> resultSummary);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
@@ -234,18 +235,18 @@ public class Neo4JSessionWhileAddVertexTest {
         Mockito.when(provider.processIdentifier(argument.capture())).thenAnswer(invocation -> argument.getValue());
         try (Neo4JSession session = new Neo4JSession(graph, this.session, provider, provider, false)) {
             // transaction
-            try (org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+            try (org.neo4j.driver.Transaction tx = session.beginTransaction()) {
                 // add vertex
                 session.addVertex();
                 // act
                 Iterator<Vertex> vertices = session.vertices(new Object[0]);
                 // assert
-                Assert.assertNotNull("Failed to find vertex", vertices.hasNext());
+                Assert.assertTrue("Failed to find vertex", vertices.hasNext());
                 Vertex vertex = vertices.next();
                 Assert.assertNotNull("Failed to create vertex", vertex);
                 Assert.assertEquals("Failed to assign vertex label", Vertex.DEFAULT_LABEL, vertex.label());
                 // commit
-                tx.success();
+                tx.commit();
             }
         }
     }

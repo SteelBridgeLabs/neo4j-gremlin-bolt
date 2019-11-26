@@ -24,13 +24,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.Statement;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.Values;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Values;
 
 /**
  * @author Rogelio J. Baucells
@@ -42,7 +41,7 @@ public class DatabaseSequenceElementIdProviderWhileGeneratingIdTest {
     private Record record;
 
     @Mock
-    private StatementResult result;
+    private Result result;
 
     @Mock
     private Transaction transaction;
@@ -54,12 +53,13 @@ public class DatabaseSequenceElementIdProviderWhileGeneratingIdTest {
     private Driver driver;
 
     @Test
+    @SuppressWarnings("unchecked")
     public void givenANewProviderShouldRequestPoolOfIdentifiers() {
         // arrange
         Mockito.when(record.get(Mockito.eq(0))).thenAnswer(invocation -> Values.value(2));
         Mockito.when(result.hasNext()).thenAnswer(invocation -> true);
         Mockito.when(result.next()).thenAnswer(invocation -> record);
-        Mockito.when(transaction.run(Mockito.any(Statement.class))).thenAnswer(invocation -> result);
+        Mockito.when(transaction.run(Mockito.any(String.class), Mockito.anyMap())).thenAnswer(invocation -> result);
         Mockito.when(session.beginTransaction()).thenAnswer(invocation -> transaction);
         Mockito.when(driver.session()).thenAnswer(invocation -> session);
         DatabaseSequenceElementIdProvider provider = new DatabaseSequenceElementIdProvider(driver, 2, "field1", "label");
@@ -67,21 +67,22 @@ public class DatabaseSequenceElementIdProviderWhileGeneratingIdTest {
         Long id = provider.generate();
         // assert
         Assert.assertNotNull("Invalid identifier value", id);
-        Assert.assertTrue("Provider returned an invalid identifier value", id == 1L);
+        Assert.assertEquals("Provider returned an invalid identifier value", 1L, (long)id);
         // act
         id = provider.generate();
         // assert
         Assert.assertNotNull("Invalid identifier value", id);
-        Assert.assertTrue("Provider returned an invalid identifier value", id == 2L);
+        Assert.assertEquals("Provider returned an invalid identifier value", 2L, (long)id);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void givenTwoIdentifierRequestsShouldRequestPoolOfIdentifiers() {
         // arrange
         Mockito.when(record.get(Mockito.eq(0))).thenAnswer(invocation -> Values.value(1));
         Mockito.when(result.hasNext()).thenAnswer(invocation -> true);
         Mockito.when(result.next()).thenAnswer(invocation -> record);
-        Mockito.when(transaction.run(Mockito.any(Statement.class))).thenAnswer(invocation -> result);
+        Mockito.when(transaction.run(Mockito.any(String.class), Mockito.anyMap())).thenAnswer(invocation -> result);
         Mockito.when(session.beginTransaction()).thenAnswer(invocation -> transaction);
         Mockito.when(driver.session()).thenAnswer(invocation -> session);
         DatabaseSequenceElementIdProvider provider = new DatabaseSequenceElementIdProvider(driver, 1, "field1", "label");
@@ -89,13 +90,13 @@ public class DatabaseSequenceElementIdProviderWhileGeneratingIdTest {
         Long id = provider.generate();
         // assert
         Assert.assertNotNull("Invalid identifier value", id);
-        Assert.assertTrue("Provider returned an invalid identifier value", id == 1L);
+        Assert.assertEquals("Provider returned an invalid identifier value", 1L, (long)id);
         // arrange
         Mockito.when(record.get(Mockito.eq(0))).thenAnswer(invocation -> Values.value(2));
         // act
         id = provider.generate();
         // assert
         Assert.assertNotNull("Invalid identifier value", id);
-        Assert.assertTrue("Provider returned an invalid identifier value", id == 2L);
+        Assert.assertEquals("Provider returned an invalid identifier value", 2L, (long)id);
     }
 }

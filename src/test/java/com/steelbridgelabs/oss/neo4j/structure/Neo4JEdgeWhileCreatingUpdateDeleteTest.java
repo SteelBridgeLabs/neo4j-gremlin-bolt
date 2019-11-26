@@ -25,13 +25,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.summary.ResultSummary;
-import org.neo4j.driver.v1.types.Entity;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.Relationship;
 
 import java.util.Collections;
 
@@ -63,7 +63,7 @@ public class Neo4JEdgeWhileCreatingUpdateDeleteTest {
     private Transaction transaction;
 
     @Mock
-    private StatementResult statementResult;
+    private Result statementResult;
 
     @Mock
     private Record record;
@@ -82,10 +82,10 @@ public class Neo4JEdgeWhileCreatingUpdateDeleteTest {
         // arrange
         Mockito.when(graph.tx()).thenAnswer(invocation -> transaction);
         Mockito.when(outVertex.matchPattern(Mockito.any())).thenAnswer(invocation -> "(o)");
-        Mockito.when(outVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(o) = {oid}");
+        Mockito.when(outVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(o) = $oid");
         Mockito.when(outVertex.id()).thenAnswer(invocation -> 1L);
         Mockito.when(inVertex.matchPattern(Mockito.any())).thenAnswer(invocation -> "(i)");
-        Mockito.when(inVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(i) = {iid}");
+        Mockito.when(inVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(i) = $iid");
         Mockito.when(inVertex.id()).thenAnswer(invocation -> 2L);
         Mockito.when(relationship.get(Mockito.eq("id"))).thenAnswer(invocation -> Values.value(1L));
         Mockito.when(relationship.type()).thenAnswer(invocation -> "label");
@@ -110,13 +110,13 @@ public class Neo4JEdgeWhileCreatingUpdateDeleteTest {
         // arrange
         Mockito.when(graph.tx()).thenAnswer(invocation -> transaction);
         Mockito.when(outVertex.matchPattern(Mockito.any())).thenAnswer(invocation -> "(o)");
-        Mockito.when(outVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(o) = {oid}");
+        Mockito.when(outVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(o) = $oid");
         Mockito.when(outVertex.id()).thenAnswer(invocation -> 1L);
-        Mockito.when(outVertex.matchStatement(Mockito.anyString(), Mockito.anyString())).thenAnswer(invocation -> "MATCH (o) WHERE ID(o) = {oid}");
+        Mockito.when(outVertex.matchStatement(Mockito.anyString(), Mockito.anyString())).thenAnswer(invocation -> "MATCH (o) WHERE ID(o) = $oid");
         Mockito.when(inVertex.matchPattern(Mockito.any())).thenAnswer(invocation -> "(i)");
-        Mockito.when(inVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(i) = {iid}");
+        Mockito.when(inVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(i) = $iid");
         Mockito.when(inVertex.id()).thenAnswer(invocation -> 2L);
-        Mockito.when(inVertex.matchStatement(Mockito.anyString(), Mockito.anyString())).thenAnswer(invocation -> "MATCH (i) WHERE ID(i) = {iid}");
+        Mockito.when(inVertex.matchStatement(Mockito.anyString(), Mockito.anyString())).thenAnswer(invocation -> "MATCH (i) WHERE ID(i) = $iid");
         Mockito.when(relationship.get(Mockito.eq("id"))).thenAnswer(invocation -> Values.value(1L));
         Mockito.when(relationship.type()).thenAnswer(invocation -> "label");
         Mockito.when(relationship.keys()).thenAnswer(invocation -> Collections.singleton("key1"));
@@ -135,8 +135,8 @@ public class Neo4JEdgeWhileCreatingUpdateDeleteTest {
         // assert
         Assert.assertNotNull("Failed to create insert command", command);
         Assert.assertNotNull("Failed to create insert command statement", command.getStatement());
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().text(), "MATCH (o) WHERE ID(o) = {oid} MATCH (i) WHERE ID(i) = {iid} MATCH (o)-[r:`label`]->(i) WHERE ID(r) = {id} SET r = {rp}");
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().parameters(), Values.parameters("oid", 1L, "iid", 2L, "id", 3L, "rp", Collections.singletonMap("key1", "value1")));
+        Assert.assertEquals("Invalid insert command statement", command.getStatement(), "MATCH (o) WHERE ID(o) = $oid MATCH (i) WHERE ID(i) = $iid MATCH (o)-[r:`label`]->(i) WHERE ID(r) = $id SET r = $rp");
+        Assert.assertEquals("Invalid insert command statement", command.getParameters(), ParameterUtils.createParameters("oid", 1L, "iid", 2L, "id", 3L, "rp", Collections.singletonMap("key1", "value1")));
         Assert.assertNotNull("Failed to create insert command callback", command.getCallback());
         // invoke callback
         command.getCallback().accept(statementResult);
@@ -149,13 +149,13 @@ public class Neo4JEdgeWhileCreatingUpdateDeleteTest {
         // arrange
         Mockito.when(graph.tx()).thenAnswer(invocation -> transaction);
         Mockito.when(outVertex.matchPattern(Mockito.any())).thenAnswer(invocation -> "(o)");
-        Mockito.when(outVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(o) = {oid}");
+        Mockito.when(outVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(o) = $oid");
         Mockito.when(outVertex.id()).thenAnswer(invocation -> 1L);
-        Mockito.when(outVertex.matchStatement(Mockito.anyString(), Mockito.anyString())).thenAnswer(invocation -> "MATCH (o) WHERE ID(o) = {oid}");
+        Mockito.when(outVertex.matchStatement(Mockito.anyString(), Mockito.anyString())).thenAnswer(invocation -> "MATCH (o) WHERE ID(o) = $oid");
         Mockito.when(inVertex.matchPattern(Mockito.any())).thenAnswer(invocation -> "(i)");
-        Mockito.when(inVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(i) = {iid}");
+        Mockito.when(inVertex.matchPredicate(Mockito.any(), Mockito.any())).thenAnswer(invocation -> "ID(i) = $iid");
         Mockito.when(inVertex.id()).thenAnswer(invocation -> 2L);
-        Mockito.when(inVertex.matchStatement(Mockito.anyString(), Mockito.anyString())).thenAnswer(invocation -> "MATCH (i) WHERE ID(i) = {iid}");
+        Mockito.when(inVertex.matchStatement(Mockito.anyString(), Mockito.anyString())).thenAnswer(invocation -> "MATCH (i) WHERE ID(i) = $iid");
         Mockito.when(relationship.get(Mockito.eq("id"))).thenAnswer(invocation -> Values.value(1L));
         Mockito.when(relationship.type()).thenAnswer(invocation -> "label");
         Mockito.when(relationship.keys()).thenAnswer(invocation -> Collections.singleton("key1"));
@@ -174,8 +174,8 @@ public class Neo4JEdgeWhileCreatingUpdateDeleteTest {
         // assert
         Assert.assertNotNull("Failed to create insert command", command);
         Assert.assertNotNull("Failed to create insert command statement", command.getStatement());
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().text(), "MATCH (o) WHERE ID(o) = {oid} MATCH (i) WHERE ID(i) = {iid} MATCH (o)-[r:`label`]->(i) WHERE ID(r) = {id} SET r = {rp}");
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().parameters(), Values.parameters("oid", 1L, "iid", 2L, "id", 3L, "rp", Collections.singletonMap("key1", null)));
+        Assert.assertEquals("Invalid insert command statement", command.getStatement(), "MATCH (o) WHERE ID(o) = $oid MATCH (i) WHERE ID(i) = $iid MATCH (o)-[r:`label`]->(i) WHERE ID(r) = $id SET r = $rp");
+        Assert.assertEquals("Invalid insert command statement", command.getParameters(), ParameterUtils.createParameters("oid", 1L, "iid", 2L, "id", 3L, "rp", Collections.singletonMap("key1", null)));
         Assert.assertNotNull("Failed to create insert command callback", command.getCallback());
         // invoke callback
         command.getCallback().accept(statementResult);

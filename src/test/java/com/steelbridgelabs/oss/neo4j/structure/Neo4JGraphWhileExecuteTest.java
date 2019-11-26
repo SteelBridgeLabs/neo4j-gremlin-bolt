@@ -24,12 +24,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.AccessMode;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.Statement;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
 
 import java.util.Collections;
 
@@ -52,22 +50,22 @@ public class Neo4JGraphWhileExecuteTest {
     private Neo4JElementIdProvider provider;
 
     @Mock
-    private StatementResult statementResult;
+    private Result statementResult;
 
     @Test
     @SuppressWarnings("unchecked")
     public void givenTextCypherStatementShouldExecuteIt() {
         // arrange
-        Mockito.when(driver.session(Mockito.any(AccessMode.class), Mockito.any(Iterable.class))).thenReturn(session);
+        Mockito.when(driver.session(Mockito.any())).thenReturn(session);
         Mockito.when(session.beginTransaction()).thenAnswer(invocation -> transaction);
-        Mockito.when(transaction.run(Mockito.any(Statement.class))).thenAnswer(invocation -> statementResult);
+        Mockito.when(transaction.run(Mockito.any(String.class), Mockito.anyMap())).thenAnswer(invocation -> statementResult);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         try (Neo4JGraph graph = new Neo4JGraph(driver, provider, provider)) {
             // act
-            StatementResult result = graph.execute("MATCH (n) RETURN n");
+            Result result = graph.execute("MATCH (n) RETURN n");
             // assert
             Assert.assertNotNull("Failed to execute CYPHER statement", result);
-            Mockito.verify(transaction, Mockito.times(1)).run(Mockito.any(Statement.class));
+            Mockito.verify(transaction, Mockito.times(1)).run(Mockito.any(String.class), Mockito.anyMap());
         }
     }
 
@@ -75,16 +73,16 @@ public class Neo4JGraphWhileExecuteTest {
     @SuppressWarnings("unchecked")
     public void givenCypherStatementShouldExecuteIt() {
         // arrange
-        Mockito.when(driver.session(Mockito.any(AccessMode.class), Mockito.any(Iterable.class))).thenReturn(session);
+        Mockito.when(driver.session(Mockito.any())).thenReturn(session);
         Mockito.when(session.beginTransaction()).thenAnswer(invocation -> transaction);
-        Mockito.when(transaction.run(Mockito.any(Statement.class))).thenAnswer(invocation -> statementResult);
+        Mockito.when(transaction.run(Mockito.any(String.class), Mockito.anyMap())).thenAnswer(invocation -> statementResult);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         try (Neo4JGraph graph = new Neo4JGraph(driver, provider, provider)) {
             // act
-            StatementResult result = graph.execute(new Statement("MATCH (n) RETURN n"));
+            Result result = graph.execute("MATCH (n) RETURN n");
             // assert
             Assert.assertNotNull("Failed to execute CYPHER statement", result);
-            Mockito.verify(transaction, Mockito.times(1)).run(Mockito.any(Statement.class));
+            Mockito.verify(transaction, Mockito.times(1)).run(Mockito.any(String.class), Mockito.anyMap());
         }
     }
 
@@ -92,16 +90,16 @@ public class Neo4JGraphWhileExecuteTest {
     @SuppressWarnings("unchecked")
     public void givenCypherStatementWithParametersShouldExecuteIt() {
         // arrange
-        Mockito.when(driver.session(Mockito.any(AccessMode.class), Mockito.any(Iterable.class))).thenReturn(session);
+        Mockito.when(driver.session(Mockito.any())).thenReturn(session);
         Mockito.when(session.beginTransaction()).thenAnswer(invocation -> transaction);
-        Mockito.when(transaction.run(Mockito.any(Statement.class))).thenAnswer(invocation -> statementResult);
+        Mockito.when(transaction.run(Mockito.any(String.class), Mockito.anyMap())).thenAnswer(invocation -> statementResult);
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         try (Neo4JGraph graph = new Neo4JGraph(driver, provider, provider)) {
             // act
-            StatementResult result = graph.execute("MATCH (n{id: {id}}) RETURN n", Collections.singletonMap("id", 10));
+            Result result = graph.execute("MATCH (n{id: $id}) RETURN n", Collections.singletonMap("id", 10));
             // assert
             Assert.assertNotNull("Failed to execute CYPHER statement", result);
-            Mockito.verify(transaction, Mockito.times(1)).run(Mockito.any(Statement.class));
+            Mockito.verify(transaction, Mockito.times(1)).run(Mockito.any(String.class), Mockito.anyMap());
         }
     }
 }

@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.Driver;
 
 import java.util.Date;
 

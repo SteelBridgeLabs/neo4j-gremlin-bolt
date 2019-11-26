@@ -28,8 +28,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Node;
 
 import java.util.Collections;
 import java.util.Iterator;

@@ -159,6 +159,18 @@ public final class Neo4JGraphFeatures implements Graph.Features {
         public boolean supportsThreadedTransactions() {
             return false;
         }
+
+        @Override
+        @FeatureDescriptor(name = FEATURE_IO_READ)
+        public boolean supportsIoRead() {
+            return false;
+        }
+
+        @Override
+        @FeatureDescriptor(name = FEATURE_IO_WRITE)
+        public boolean supportsIoWrite() {
+            return false;
+        }
     }
 
     private static class Neo4JVertexFeatures extends Neo4JElementFeatures implements VertexFeatures {

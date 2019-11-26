@@ -27,13 +27,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.summary.ResultSummary;
-import org.neo4j.driver.v1.types.Entity;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.Node;
 
 import java.util.Collections;
 
@@ -83,7 +83,7 @@ public class Neo4JVertexWhileCreatingDeleteCommandTest {
     private Neo4JEdge edge2;
 
     @Mock
-    private StatementResult statementResult;
+    private Result statementResult;
 
     @Mock
     private Record record;
@@ -120,8 +120,8 @@ public class Neo4JVertexWhileCreatingDeleteCommandTest {
         // assert
         Assert.assertNotNull("Failed to create delete command", command);
         Assert.assertNotNull("Failed to create delete command statement", command.getStatement());
-        Assert.assertEquals("Invalid delete command statement", command.getStatement().text(), "MATCH (v:`l1`) WHERE n.id = {id} DETACH DELETE v");
-        Assert.assertEquals("Invalid delete command statement", command.getStatement().parameters(), Values.parameters("id", 1L));
+        Assert.assertEquals("Invalid delete command statement", command.getStatement(), "MATCH (v:`l1`) WHERE n.id = $id DETACH DELETE v");
+        Assert.assertEquals("Invalid delete command statement", command.getParameters(), Collections.singletonMap("id", 1L));
         Assert.assertNotNull("Failed to create delete command callback", command.getCallback());
         // invoke callback
         command.getCallback().accept(statementResult);

@@ -66,7 +66,7 @@ public class AllLabelReadPartition implements Neo4JReadPartition {
     public boolean containsVertex(Set<String> labels) {
         Objects.requireNonNull(labels, "labels cannot be null");
         // all labels must be present in vertex
-        return this.labels.stream().allMatch(labels::contains);
+        return labels.containsAll(this.labels);
     }
 
     /**

@@ -27,13 +27,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.summary.ResultSummary;
-import org.neo4j.driver.v1.types.Entity;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.Node;
 
 import java.util.Collections;
 
@@ -71,19 +70,7 @@ public class Neo4JVertexWhileCreatingInsertCommandTest {
     private Graph.Features features;
 
     @Mock
-    private Neo4JVertex otherVertex;
-
-    @Mock
-    private Neo4JVertex vertex1;
-
-    @Mock
-    private Neo4JVertex vertex2;
-
-    @Mock
-    private Neo4JEdge edge2;
-
-    @Mock
-    private StatementResult statementResult;
+    private Result statementResult;
 
     @Mock
     private Record record;
@@ -93,9 +80,6 @@ public class Neo4JVertexWhileCreatingInsertCommandTest {
 
     @Mock
     private Value value;
-
-    @Mock
-    private ResultSummary resultSummary;
 
     @Test
     public void givenNoIdGenerationProviderShouldCreateInsertCommand() {
@@ -124,8 +108,8 @@ public class Neo4JVertexWhileCreatingInsertCommandTest {
         Assert.assertNull("Failed get node identifier", vertex.id());
         Assert.assertNotNull("Failed to create insert command", command);
         Assert.assertNotNull("Failed to create insert command statement", command.getStatement());
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().text(), "CREATE (n:`L1`{vp}) RETURN ID(n)");
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().parameters(), Values.parameters("vp", Collections.emptyMap()));
+        Assert.assertEquals("Invalid insert command statement", command.getStatement(), "CREATE (n:`L1`$vp) RETURN ID(n)");
+        Assert.assertEquals("Invalid insert command statement", command.getParameters(), ParameterUtils.createParameters("vp", Collections.emptyMap()));
         Assert.assertNotNull("Failed to create insert command callback", command.getCallback());
         // invoke callback
         command.getCallback().accept(statementResult);
@@ -155,8 +139,8 @@ public class Neo4JVertexWhileCreatingInsertCommandTest {
         // assert
         Assert.assertNotNull("Failed to create insert command", command);
         Assert.assertNotNull("Failed to create insert command statement", command.getStatement());
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().text(), "CREATE (:`L1`{vp})");
-        Assert.assertEquals("Invalid insert command statement", command.getStatement().parameters(), Values.parameters("vp", Collections.singletonMap("id", 1L)));
+        Assert.assertEquals("Invalid insert command statement", command.getStatement(), "CREATE (:`L1`$vp)");
+        Assert.assertEquals("Invalid insert command statement", command.getParameters(), ParameterUtils.createParameters("vp", Collections.singletonMap("id", 1L)));
         Assert.assertNotNull("Failed to create insert command callback", command.getCallback());
     }
 }
