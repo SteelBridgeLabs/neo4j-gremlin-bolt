@@ -319,7 +319,7 @@ class Neo4JSession implements AutoCloseable {
                     // change operator on single id filtering (performance optimization)
                     if (filter.size() == 1) {
                         // execute statement
-                        Result result = executeStatement("MATCH " + generateVertexMatchPattern("n") + " WHERE " + vertexIdProvider.matchPredicateOperand("n") + " = {id}" + (predicate != null ? " AND " + predicate : "") + " RETURN n", Collections.singletonMap("id", filter.get(0)));
+                        Result result = executeStatement("MATCH " + generateVertexMatchPattern("n") + " WHERE " + vertexIdProvider.matchPredicateOperand("n") + " = $id" + (predicate != null ? " AND " + predicate : "") + " RETURN n", Collections.singletonMap("id", filter.get(0)));
                         // create stream from query
                         Stream<Vertex> query = vertices(result);
                         // combine stream from memory and query result
@@ -330,7 +330,7 @@ class Neo4JSession implements AutoCloseable {
                         return iterator;
                     }
                     // execute statement
-                    Result result = executeStatement("MATCH " + generateVertexMatchPattern("n") + " WHERE " + vertexIdProvider.matchPredicateOperand("n") + " IN {ids}" + (predicate != null ? " AND " + predicate : "") + " RETURN n", Collections.singletonMap("ids", filter));
+                    Result result = executeStatement("MATCH " + generateVertexMatchPattern("n") + " WHERE " + vertexIdProvider.matchPredicateOperand("n") + " IN $ids" + (predicate != null ? " AND " + predicate : "") + " RETURN n", Collections.singletonMap("ids", filter));
                     // create stream from query
                     Stream<Vertex> query = vertices(result);
                     // combine stream from memory and query result
@@ -394,7 +394,7 @@ class Neo4JSession implements AutoCloseable {
                     // change operator on single id filtering (performance optimization)
                     if (filter.size() == 1) {
                         // execute statement
-                        Result result = executeStatement("MATCH " + generateVertexMatchPattern("n") + "-[r]->" + generateVertexMatchPattern("m") + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = {id}" + (partition.usesMatchPredicate() ? " AND " + partition.vertexMatchPredicate("n") + " AND " + partition.vertexMatchPredicate("m") : "") + " RETURN n, r, m", Collections.singletonMap("id", filter.get(0)));
+                        Result result = executeStatement("MATCH " + generateVertexMatchPattern("n") + "-[r]->" + generateVertexMatchPattern("m") + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = $id" + (partition.usesMatchPredicate() ? " AND " + partition.vertexMatchPredicate("n") + " AND " + partition.vertexMatchPredicate("m") : "") + " RETURN n, r, m", Collections.singletonMap("id", filter.get(0)));
                         // find edges
                         Stream<Edge> query = edges(result);
                         // combine stream from memory and query result
@@ -405,7 +405,7 @@ class Neo4JSession implements AutoCloseable {
                         return iterator;
                     }
                     // execute statement
-                    Result result = executeStatement("MATCH " + generateVertexMatchPattern("n") + "-[r]->" + generateVertexMatchPattern("m") + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " in {ids}" + (partition.usesMatchPredicate() ? " AND " + partition.vertexMatchPredicate("n") + " AND " + partition.vertexMatchPredicate("m") : "") + " RETURN n, r, m", Collections.singletonMap("ids", filter));
+                    Result result = executeStatement("MATCH " + generateVertexMatchPattern("n") + "-[r]->" + generateVertexMatchPattern("m") + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " in $ids" + (partition.usesMatchPredicate() ? " AND " + partition.vertexMatchPredicate("n") + " AND " + partition.vertexMatchPredicate("m") : "") + " RETURN n, r, m", Collections.singletonMap("ids", filter));
                     // find edges
                     Stream<Edge> query = edges(result);
                     // combine stream from memory and query result
@@ -465,8 +465,7 @@ class Neo4JSession implements AutoCloseable {
         // check edge is transient
         if (transientEdges.contains(edge)) {
             // log information
-            if (logger.isDebugEnabled())
-                logger.debug("Deleting transient edge: {}", edge);
+            logger.debug("Deleting transient edge: {}", edge);
             // check explicit delete on edge
             if (explicit) {
                 // remove references from adjacent vertices
@@ -483,8 +482,7 @@ class Neo4JSession implements AutoCloseable {
         }
         else {
             // log information
-            if (logger.isDebugEnabled())
-                logger.debug("Deleting edge: {}", edge);
+            logger.debug("Deleting edge: {}", edge);
             // mark edge as deleted (prevent returning edge in query results)
             deletedEdges.add(id);
             // check we need to execute delete statement on edge
@@ -633,8 +631,7 @@ class Neo4JSession implements AutoCloseable {
         // check vertex is transient
         if (transientVertices.contains(vertex)) {
             // log information
-            if (logger.isDebugEnabled())
-                logger.debug("Deleting transient vertex: {}", vertex);
+            logger.debug("Deleting transient vertex: {}", vertex);
             // remove it from transient set
             transientVertices.remove(vertex);
             // remove it from index
@@ -643,8 +640,7 @@ class Neo4JSession implements AutoCloseable {
         }
         else {
             // log information
-            if (logger.isDebugEnabled())
-                logger.debug("Deleting vertex: {}", vertex);
+            logger.debug("Deleting vertex: {}", vertex);
             // mark vertex as deleted (prevent returning vertex in query results)
             deletedVertices.add(id);
             // add vertex to queue

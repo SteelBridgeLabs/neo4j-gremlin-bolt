@@ -96,7 +96,7 @@ public class Neo4JGraphWhileExecuteTest {
         Mockito.when(provider.fieldName()).thenAnswer(invocation -> "id");
         try (Neo4JGraph graph = new Neo4JGraph(driver, provider, provider)) {
             // act
-            Result result = graph.execute("MATCH (n{id: {id}}) RETURN n", Collections.singletonMap("id", 10));
+            Result result = graph.execute("MATCH (n{id: $id}) RETURN n", Collections.singletonMap("id", 10));
             // assert
             Assert.assertNotNull("Failed to execute CYPHER statement", result);
             Mockito.verify(transaction, Mockito.times(1)).run(Mockito.any(String.class), Mockito.anyMap());

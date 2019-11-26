@@ -36,6 +36,7 @@ public final class Neo4JGraphConfigurationBuilder {
     public static final String Neo4JPortConfigurationKey = "neo4j.port";
     public static final String Neo4JUsernameConfigurationKey = "neo4j.username";
     public static final String Neo4JPasswordConfigurationKey = "neo4j.password";
+    public static final String Neo4JDatabaseConfigurationKey = "neo4j.database";
     public static final String Neo4JReadonlyConfigurationKey = "neo4j.readonly";
     public static final String Neo4JVertexIdProviderClassNameConfigurationKey = "neo4j.vertexIdProvider";
     public static final String Neo4JEdgeIdProviderClassNameConfigurationKey = "neo4j.edgeIdProvider";
@@ -45,6 +46,7 @@ public final class Neo4JGraphConfigurationBuilder {
     private final short port;
     private final String username;
     private final String password;
+    private final String database;
     private final boolean readonly;
     private String graphName;
     private String identifier;
@@ -53,7 +55,7 @@ public final class Neo4JGraphConfigurationBuilder {
     private String propertyIdProviderClassName = null;
     private String elementIdProviderClassName = null;
 
-    private Neo4JGraphConfigurationBuilder(String hostname, short port, String username, String password, boolean readonly) {
+    private Neo4JGraphConfigurationBuilder(String hostname, short port, String username, String password, String database, boolean readonly) {
         Objects.requireNonNull(hostname, "hostname cannot be null");
         Objects.requireNonNull(username, "username cannot be null");
         Objects.requireNonNull(password, "password cannot be null");
@@ -62,27 +64,52 @@ public final class Neo4JGraphConfigurationBuilder {
         this.port = port;
         this.username = username;
         this.password = password;
+        this.database = database;
         this.readonly = readonly;
     }
 
+    @Deprecated
     public static Neo4JGraphConfigurationBuilder connect(String hostname, short port, String username, String password) {
         // create builder instance
-        return new Neo4JGraphConfigurationBuilder(hostname, port, username, password, false);
+        return new Neo4JGraphConfigurationBuilder(hostname, port, username, password, null, false);
     }
 
+    public static Neo4JGraphConfigurationBuilder connect(String hostname, short port, String username, String password, String database) {
+        // create builder instance
+        return new Neo4JGraphConfigurationBuilder(hostname, port, username, password, database, false);
+    }
+
+    @Deprecated
     public static Neo4JGraphConfigurationBuilder connect(String hostname, short port, String username, String password, boolean readonly) {
         // create builder instance
-        return new Neo4JGraphConfigurationBuilder(hostname, port, username, password, readonly);
+        return new Neo4JGraphConfigurationBuilder(hostname, port, username, password, null, readonly);
     }
 
+    public static Neo4JGraphConfigurationBuilder connect(String hostname, short port, String username, String password, String database, boolean readonly) {
+        // create builder instance
+        return new Neo4JGraphConfigurationBuilder(hostname, port, username, password, database, readonly);
+    }
+
+    @Deprecated
     public static Neo4JGraphConfigurationBuilder connect(String hostname, String username, String password) {
         // create builder instance
-        return new Neo4JGraphConfigurationBuilder(hostname, (short)7687, username, password, false);
+        return new Neo4JGraphConfigurationBuilder(hostname, (short)7687, username, password, null, false);
     }
 
+    public static Neo4JGraphConfigurationBuilder connect(String hostname, String username, String password, String database) {
+        // create builder instance
+        return new Neo4JGraphConfigurationBuilder(hostname, (short)7687, username, password, database, false);
+    }
+
+    @Deprecated
     public static Neo4JGraphConfigurationBuilder connect(String hostname, String username, String password, boolean readonly) {
         // create builder instance
-        return new Neo4JGraphConfigurationBuilder(hostname, (short)7687, username, password, readonly);
+        return new Neo4JGraphConfigurationBuilder(hostname, (short)7687, username, password, null, readonly);
+    }
+
+    public static Neo4JGraphConfigurationBuilder connect(String hostname, String username, String password, String database, boolean readonly) {
+        // create builder instance
+        return new Neo4JGraphConfigurationBuilder(hostname, (short)7687, username, password, database, readonly);
     }
 
     public Neo4JGraphConfigurationBuilder withIdentifier(String identifier) {
@@ -147,6 +174,8 @@ public final class Neo4JGraphConfigurationBuilder {
         configuration.setProperty(Neo4JUsernameConfigurationKey, username);
         // password
         configuration.setProperty(Neo4JPasswordConfigurationKey, password);
+        // database
+        configuration.setProperty(Neo4JDatabaseConfigurationKey, database);
         // readonly
         configuration.setProperty(Neo4JReadonlyConfigurationKey, readonly);
         // graphName

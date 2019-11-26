@@ -116,7 +116,7 @@ public class Neo4JVertexWhileCreatingUpdateCommandTest {
         // assert
         Assert.assertNotNull("Failed to create update command", command);
         Assert.assertNotNull("Failed to create update command statement", command.getStatement());
-        Assert.assertEquals("Invalid update command statement", command.getStatement(), "MATCH (v:`l1`) WHERE n.id = {id} SET v = {vp}");
+        Assert.assertEquals("Invalid update command statement", command.getStatement(), "MATCH (v:`l1`) WHERE n.id = $id SET v = $vp");
         Assert.assertEquals("Invalid update command statement", command.getParameters(), ParameterUtils.createParameters("id", 1L, "vp", ParameterUtils.createParameters("key1", "value1", "key2", "value2", "id", 1L)));
         Assert.assertNotNull("Failed to create update command callback", command.getCallback());
         // invoke callback
@@ -146,7 +146,7 @@ public class Neo4JVertexWhileCreatingUpdateCommandTest {
         // assert
         Assert.assertNotNull("Failed to create update command", command);
         Assert.assertNotNull("Failed to create update command statement", command.getStatement());
-        Assert.assertEquals("Invalid update command statement", command.getStatement(), "MATCH (v:`l1`) WHERE n.id = {id} SET v:`Test`");
+        Assert.assertEquals("Invalid update command statement", command.getStatement(), "MATCH (v:`l1`) WHERE n.id = $id SET v:`Test`");
         Assert.assertEquals("Invalid update command statement", command.getParameters(), ParameterUtils.createParameters("id", 1L));
         Assert.assertNotNull("Failed to create update command callback", command.getCallback());
         // invoke callback
@@ -176,7 +176,7 @@ public class Neo4JVertexWhileCreatingUpdateCommandTest {
         // assert
         Assert.assertNotNull("Failed to create update command", command);
         Assert.assertNotNull("Failed to create update command statement", command.getStatement());
-        Assert.assertEquals("Invalid update command statement", command.getStatement(), "MATCH (v:`l1`:`l2`) WHERE n.id = {id} REMOVE v:`l2`");
+        Assert.assertEquals("Invalid update command statement", command.getStatement(), "MATCH (v:`l1`:`l2`) WHERE n.id = $id REMOVE v:`l2`");
         Assert.assertEquals("Invalid update command statement", command.getParameters(), ParameterUtils.createParameters("id", 1L));
         Assert.assertNotNull("Failed to create update command callback", command.getCallback());
         // invoke callback
@@ -206,7 +206,7 @@ public class Neo4JVertexWhileCreatingUpdateCommandTest {
         // assert
         Assert.assertNotNull("Failed to create update command", command);
         Assert.assertNotNull("Failed to create update command statement", command.getStatement());
-        Assert.assertEquals("Invalid update command statement", command.getStatement(), "MATCH (v:`l1`) WHERE n.id = {id} SET v = {vp}");
+        Assert.assertEquals("Invalid update command statement", command.getStatement(), "MATCH (v:`l1`) WHERE n.id = $id SET v = $vp");
         Assert.assertEquals("Invalid update command statement", command.getParameters(), ParameterUtils.createParameters("id", 1L, "vp", ParameterUtils.createParameters("key1", null, "id", 1L)));
         Assert.assertNotNull("Failed to create update command callback", command.getCallback());
         // invoke callback

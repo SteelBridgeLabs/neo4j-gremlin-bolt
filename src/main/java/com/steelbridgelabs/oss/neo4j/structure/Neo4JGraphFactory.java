@@ -53,15 +53,13 @@ public class Neo4JGraphFactory {
             Neo4JElementIdProvider<?> edgeIdProvider = loadProvider(driver, configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JEdgeIdProviderClassNameConfigurationKey));
             // readonly
             boolean readonly = configuration.getBoolean(Neo4JGraphConfigurationBuilder.Neo4JReadonlyConfigurationKey);
-            // graph instance
-            Neo4JGraph graph;
+            // database
+            String database = configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JDatabaseConfigurationKey, null);
             // check a read partition is required
             if (graphName != null)
-                graph = new Neo4JGraph(new AnyLabelReadPartition(graphName), new String[]{graphName}, driver, vertexIdProvider, edgeIdProvider, configuration, readonly);
-            else
-                graph = new Neo4JGraph(new NoReadPartition(), new String[]{}, driver, vertexIdProvider, edgeIdProvider, configuration, readonly);
-            // return graph instance
-            return graph;
+                return new Neo4JGraph(new AnyLabelReadPartition(graphName), new String[]{graphName}, driver, database, vertexIdProvider, edgeIdProvider, configuration, readonly);
+            // no graph name
+            return new Neo4JGraph(new NoReadPartition(), new String[]{}, driver, database, vertexIdProvider, edgeIdProvider, configuration, readonly);
         }
         catch (Throwable ex) {
             // throw runtime exception

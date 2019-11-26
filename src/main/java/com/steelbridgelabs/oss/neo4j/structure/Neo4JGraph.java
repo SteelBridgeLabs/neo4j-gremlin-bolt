@@ -125,6 +125,7 @@ public class Neo4JGraph implements Graph {
      * @param vertexIdProvider The {@link Neo4JElementIdProvider} for the {@link Vertex} id generation.
      * @param edgeIdProvider   The {@link Neo4JElementIdProvider} for the {@link Edge} id generation.
      */
+    @Deprecated
     public Neo4JGraph(Driver driver, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider) {
         Objects.requireNonNull(driver, "driver cannot be null");
         Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
@@ -156,7 +157,6 @@ public class Neo4JGraph implements Graph {
      */
     public Neo4JGraph(Driver driver, String database, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider) {
         Objects.requireNonNull(driver, "driver cannot be null");
-        Objects.requireNonNull(database, "database cannot be null");
         Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
         Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
         // no label partition
@@ -185,6 +185,7 @@ public class Neo4JGraph implements Graph {
      * @param readonly         {@code true} indicates the Graph instance will be used to read from the Neo4J database.
      * @param bookmarks        The initial references to some previous transactions. Both null value and empty iterable are permitted, and indicate that the bookmarks do not exist or are unknown.
      */
+    @Deprecated
     public Neo4JGraph(Driver driver, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider, boolean readonly, String... bookmarks) {
         Objects.requireNonNull(driver, "driver cannot be null");
         Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
@@ -218,7 +219,6 @@ public class Neo4JGraph implements Graph {
      */
     public Neo4JGraph(Driver driver, String database, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider, boolean readonly, String... bookmarks) {
         Objects.requireNonNull(driver, "driver cannot be null");
-        Objects.requireNonNull(database, "database cannot be null");
         Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
         Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
         // no label partition
@@ -247,6 +247,7 @@ public class Neo4JGraph implements Graph {
      * @param vertexIdProvider The {@link Neo4JElementIdProvider} for the {@link Vertex} id generation.
      * @param edgeIdProvider   The {@link Neo4JElementIdProvider} for the {@link Edge} id generation.
      */
+    @Deprecated
     public Neo4JGraph(Neo4JReadPartition partition, String[] vertexLabels, Driver driver, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider) {
         Objects.requireNonNull(partition, "partition cannot be null");
         Objects.requireNonNull(vertexLabels, "vertexLabels cannot be null");
@@ -286,7 +287,6 @@ public class Neo4JGraph implements Graph {
         Objects.requireNonNull(partition, "partition cannot be null");
         Objects.requireNonNull(vertexLabels, "vertexLabels cannot be null");
         Objects.requireNonNull(driver, "driver cannot be null");
-        Objects.requireNonNull(database, "database cannot be null");
         Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
         Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
         // initialize fields
@@ -319,6 +319,7 @@ public class Neo4JGraph implements Graph {
      * @param readonly         {@code true} indicates the Graph instance will be used to read from the Neo4J database.
      * @param bookmarks        The initial references to some previous transactions. Both null value and empty iterable are permitted, and indicate that the bookmarks do not exist or are unknown.
      */
+    @Deprecated
     public Neo4JGraph(Neo4JReadPartition partition, String[] vertexLabels, Driver driver, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider, boolean readonly, String... bookmarks) {
         Objects.requireNonNull(partition, "partition cannot be null");
         Objects.requireNonNull(vertexLabels, "vertexLabels cannot be null");
@@ -360,7 +361,6 @@ public class Neo4JGraph implements Graph {
         Objects.requireNonNull(partition, "partition cannot be null");
         Objects.requireNonNull(vertexLabels, "vertexLabels cannot be null");
         Objects.requireNonNull(driver, "driver cannot be null");
-        Objects.requireNonNull(database, "database cannot be null");
         Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
         Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
         // initialize fields
@@ -392,6 +392,7 @@ public class Neo4JGraph implements Graph {
      * @param edgeIdProvider   The {@link Neo4JElementIdProvider} for the {@link Edge} id generation.
      * @param configuration    The {@link Configuration} used to create the {@link Graph} instance.
      */
+    @Deprecated
     Neo4JGraph(Neo4JReadPartition partition, String[] vertexLabels, Driver driver, Neo4JElementIdProvider<?> vertexIdProvider, Neo4JElementIdProvider<?> edgeIdProvider, Configuration configuration, boolean readonly, String... bookmarks) {
         Objects.requireNonNull(partition, "partition cannot be null");
         Objects.requireNonNull(vertexLabels, "vertexLabels cannot be null");
@@ -433,7 +434,6 @@ public class Neo4JGraph implements Graph {
         Objects.requireNonNull(partition, "partition cannot be null");
         Objects.requireNonNull(vertexLabels, "vertexLabels cannot be null");
         Objects.requireNonNull(driver, "driver cannot be null");
-        Objects.requireNonNull(database, "database cannot be null");
         Objects.requireNonNull(vertexIdProvider, "vertexIdProvider cannot be null");
         Objects.requireNonNull(edgeIdProvider, "edgeIdProvider cannot be null");
         Objects.requireNonNull(configuration, "configuration cannot be null");

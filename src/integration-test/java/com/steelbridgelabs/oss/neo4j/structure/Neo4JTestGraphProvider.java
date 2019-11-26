@@ -23,9 +23,9 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.tinkerpop.gremlin.AbstractGraphProvider;
 import org.apache.tinkerpop.gremlin.LoadGraphWith;
 import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -49,7 +49,7 @@ public class Neo4JTestGraphProvider extends AbstractGraphProvider {
     @Override
     public Map<String, Object> getBaseConfiguration(String graphName, Class<?> test, String testMethodName, LoadGraphWith.GraphData graphData) {
         // build configuration
-        Configuration configuration = Neo4JGraphConfigurationBuilder.connect("localhost", "neo4j", "neo4j123", false)
+        Configuration configuration = Neo4JGraphConfigurationBuilder.connect("localhost", "neo4j", "neo4j123", null, false)
             .withIdentifier("localhost-neo4j")
             .withName(graphName)
             .withElementIdProvider(ElementIdProvider.class)
@@ -72,8 +72,16 @@ public class Neo4JTestGraphProvider extends AbstractGraphProvider {
         }
         // create driver instance
         Driver driver = Neo4JGraphFactory.createDriverInstance(configuration);
+        // session configuration
+        SessionConfig.Builder config = SessionConfig.builder();
+        // check database is set
+        String database = configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JDatabaseConfigurationKey, null);
+        if (database != null) {
+            // update session config
+            config.withDatabase(database);
+        }
         // open session
-        try (Session session = driver.session()) {
+        try (Session session = driver.session(config.build())) {
             // begin transaction
             try (org.neo4j.driver.Transaction transaction = session.beginTransaction()) {
                 // delete everything in database
@@ -87,48 +95,5 @@ public class Neo4JTestGraphProvider extends AbstractGraphProvider {
     @Override
     public Set<Class> getImplementations() {
         return implementations;
-    }
-
-    @Override
-    public void loadGraphData(Graph graph, LoadGraphWith loadGraphWith, Class testClass, String testName) {
-        // create indexes for specific test
-        if (loadGraphWith != null)
-            createIndices((Neo4JGraph)graph, loadGraphWith.value());
-        // load graph data
-        super.loadGraphData(graph, loadGraphWith, testClass, testName);
-    }
-
-    private void createIndices(final Neo4JGraph graph, final LoadGraphWith.GraphData graphData) {
-        // default vertex label index
-        graph.createIndex(Vertex.DEFAULT_LABEL, ElementIdProvider.IdFieldName);
-        // process graph data
-        switch (graphData) {
-            case GRATEFUL:
-                // create indexes
-                graph.createIndex("artist", "id");
-                graph.createIndex("artist", "name");
-                graph.createIndex("song", "id");
-                graph.createIndex("song", "name");
-                graph.createIndex("song", "songType");
-                graph.createIndex("song", "performances");
-                break;
-            case MODERN:
-                // create indexes
-                graph.createIndex("person", "id");
-                graph.createIndex("person", "name");
-                graph.createIndex("person", "age");
-                graph.createIndex("software", "id");
-                graph.createIndex("software", "name");
-                graph.createIndex("software", "lang");
-                break;
-            case CLASSIC:
-                // create indexes
-                graph.createIndex("vertex", "name");
-                graph.createIndex("vertex", "age");
-                graph.createIndex("vertex", "lang");
-                break;
-        }
-        // commit transaction
-        graph.tx().commit();
     }
 }

@@ -125,7 +125,7 @@ public class DatabaseSequenceElementIdProvider implements Neo4JElementIdProvider
                             // create transaction
                             try (Transaction transaction = session.beginTransaction()) {
                                 // execute statement
-                                Result result = transaction.run("MERGE (g:`" + sequenceNodeLabel + "`) ON CREATE SET g.nextId = 1 ON MATCH SET g.nextId = g.nextId + {poolSize} RETURN g.nextId", Collections.singletonMap("poolSize", poolSize));
+                                Result result = transaction.run("MERGE (g:`" + sequenceNodeLabel + "`) ON CREATE SET g.nextId = 1 ON MATCH SET g.nextId = g.nextId + $poolSize RETURN g.nextId", Collections.singletonMap("poolSize", poolSize));
                                 // process result
                                 if (result.hasNext()) {
                                     // get record

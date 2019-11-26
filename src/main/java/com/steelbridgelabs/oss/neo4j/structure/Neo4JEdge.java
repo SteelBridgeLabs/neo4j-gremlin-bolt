@@ -337,7 +337,7 @@ public class Neo4JEdge extends Neo4JElement implements Edge {
         // check database side id generation is required
         if (id == null) {
             // create statement
-            String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " CREATE (o)-[r:`" + label + "`{ep}]->(i) RETURN " + edgeIdProvider.matchPredicateOperand("r");
+            String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " CREATE (o)-[r:`" + label + "`$ep]->(i) RETURN " + edgeIdProvider.matchPredicateOperand("r");
             // command statement
             return new Neo4JDatabaseCommand(statement, parameters, result -> {
                 // check we received data
@@ -350,7 +350,7 @@ public class Neo4JEdge extends Neo4JElement implements Edge {
             });
         }
         // create statement
-        String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " CREATE (o)-[:`" + label + "`{ep}]->(i)";
+        String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " CREATE (o)-[:`" + label + "`$ep]->(i)";
         // command statement
         return new Neo4JDatabaseCommand(statement, parameters);
     }
@@ -360,7 +360,7 @@ public class Neo4JEdge extends Neo4JElement implements Edge {
         // check edge is dirty
         if (dirty) {
             // update statement
-            String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " MATCH (o)-[r:`" + label + "`]->(i)" + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = {id} SET r = {rp}";
+            String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " MATCH (o)-[r:`" + label + "`]->(i)" + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = $id SET r = $rp";
             // parameters
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("oid", out.id());
@@ -377,7 +377,7 @@ public class Neo4JEdge extends Neo4JElement implements Edge {
     @Override
     public Neo4JDatabaseCommand deleteCommand() {
         // delete statement
-        String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " MATCH (o)-[r:`" + label + "`]->(i)" + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = {id} DELETE r";
+        String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " MATCH (o)-[r:`" + label + "`]->(i)" + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = $id DELETE r";
         // parameters
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("oid", out.id());

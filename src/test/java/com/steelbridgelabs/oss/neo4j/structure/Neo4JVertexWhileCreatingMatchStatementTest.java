@@ -84,6 +84,6 @@ public class Neo4JVertexWhileCreatingMatchStatementTest {
         String result = vertex.matchStatement("a", "id");
         // assert
         Assert.assertNotNull("Failed to create match predicate", result);
-        Assert.assertEquals("Invalid match predicate", result, "MATCH (a:`l1`) WHERE a.id = {id}");
+        Assert.assertEquals("Invalid match predicate", result, "MATCH (a:`l1`) WHERE a.id = $id");
     }
 }

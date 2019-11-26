@@ -120,7 +120,7 @@ public class Neo4JVertexWhileCreatingDeleteCommandTest {
         // assert
         Assert.assertNotNull("Failed to create delete command", command);
         Assert.assertNotNull("Failed to create delete command statement", command.getStatement());
-        Assert.assertEquals("Invalid delete command statement", command.getStatement(), "MATCH (v:`l1`) WHERE n.id = {id} DETACH DELETE v");
+        Assert.assertEquals("Invalid delete command statement", command.getStatement(), "MATCH (v:`l1`) WHERE n.id = $id DETACH DELETE v");
         Assert.assertEquals("Invalid delete command statement", command.getParameters(), Collections.singletonMap("id", 1L));
         Assert.assertNotNull("Failed to create delete command callback", command.getCallback());
         // invoke callback
