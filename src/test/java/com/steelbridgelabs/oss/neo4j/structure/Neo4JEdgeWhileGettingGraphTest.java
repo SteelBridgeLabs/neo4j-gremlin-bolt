@@ -27,8 +27,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Relationship;
 
 import java.util.Collections;
 

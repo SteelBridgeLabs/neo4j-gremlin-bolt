@@ -27,8 +27,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Node;
 
 import java.util.Collections;
 
@@ -84,6 +84,6 @@ public class Neo4JVertexWhileCreatingMatchStatementTest {
         String result = vertex.matchStatement("a", "id");
         // assert
         Assert.assertNotNull("Failed to create match predicate", result);
-        Assert.assertEquals("Invalid match predicate", result, "MATCH (a:`l1`) WHERE a.id = {id}");
+        Assert.assertEquals("Invalid match predicate", result, "MATCH (a:`l1`) WHERE a.id = $id");
     }
 }

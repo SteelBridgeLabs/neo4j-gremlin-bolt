@@ -18,7 +18,7 @@
 
 package com.steelbridgelabs.oss.neo4j.structure;
 
-import org.neo4j.driver.v1.types.Entity;
+import org.neo4j.driver.types.Entity;
 
 /**
  * @author Rogelio J. Baucells

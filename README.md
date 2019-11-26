@@ -102,7 +102,7 @@ Cons:
 
 ```java
     // create graph instance
-    try (Graph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
+    try (Graph graph = new Neo4JGraph(driver, databaseName, vertexIdProvider, edgeIdProvider)) {
         
     }
 ```
@@ -113,7 +113,7 @@ Cons:
 
 ```java
     // create graph instance
-    try (Graph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
+    try (Graph graph = new Neo4JGraph(driver, databaseName, vertexIdProvider, edgeIdProvider)) {
         // begin transaction
         try (Transaction transaction = graph.tx()) {
             // use Graph API to create, update and delete Vertices and Edges
@@ -130,7 +130,7 @@ Cons:
 
 ```java
     // create graph instance
-    try (Graph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider, false, "bookmark-1")) {
+    try (Graph graph = new Neo4JGraph(driver, databaseName, vertexIdProvider, edgeIdProvider, false, "bookmark-1")) {
         // begin transaction
         try (Transaction transaction = graph.tx()) {
             // use Graph API to create, update and delete Vertices and Edges
@@ -145,7 +145,7 @@ Cons:
 
 ```java
     // create graph instance
-    try (Graph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider, true, "bookmark-1")) {
+    try (Graph graph = new Neo4JGraph(driver, databaseName, vertexIdProvider, edgeIdProvider, true, "bookmark-1")) {
         // begin transaction
         try (Transaction transaction = graph.tx()) {
             // use Graph API to read Vertices and Edges
@@ -164,7 +164,7 @@ Cons:
 
 ```java
     // create graph instance
-    try (Neo4JGraph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
+    try (Neo4JGraph graph = new Neo4JGraph(driver, databaseName, vertexIdProvider, edgeIdProvider)) {
         // enable profiler
         graph.setProfilerEnabled(true);
         

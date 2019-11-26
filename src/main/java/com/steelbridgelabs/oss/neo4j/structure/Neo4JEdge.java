@@ -26,11 +26,9 @@ import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Statement;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Relationship;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -332,13 +330,16 @@ public class Neo4JEdge extends Neo4JElement implements Edge {
     @Override
     public Neo4JDatabaseCommand insertCommand() {
         // parameters
-        Value parameters = Values.parameters("oid", out.id(), "iid", in.id(), "ep", statementParameters());
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("oid", out.id());
+        parameters.put("iid", in.id());
+        parameters.put("ep", statementParameters());
         // check database side id generation is required
         if (id == null) {
             // create statement
-            String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " CREATE (o)-[r:`" + label + "`{ep}]->(i) RETURN " + edgeIdProvider.matchPredicateOperand("r");
+            String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " CREATE (o)-[r:`" + label + "`$ep]->(i) RETURN " + edgeIdProvider.matchPredicateOperand("r");
             // command statement
-            return new Neo4JDatabaseCommand(new Statement(statement, parameters), result -> {
+            return new Neo4JDatabaseCommand(statement, parameters, result -> {
                 // check we received data
                 if (result.hasNext()) {
                     // record
@@ -349,9 +350,9 @@ public class Neo4JEdge extends Neo4JElement implements Edge {
             });
         }
         // create statement
-        String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " CREATE (o)-[:`" + label + "`{ep}]->(i)";
+        String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " CREATE (o)-[:`" + label + "`$ep]->(i)";
         // command statement
-        return new Neo4JDatabaseCommand(new Statement(statement, parameters));
+        return new Neo4JDatabaseCommand(statement, parameters);
     }
 
     @Override
@@ -359,11 +360,15 @@ public class Neo4JEdge extends Neo4JElement implements Edge {
         // check edge is dirty
         if (dirty) {
             // update statement
-            String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " MATCH (o)-[r:`" + label + "`]->(i)" + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = {id} SET r = {rp}";
+            String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " MATCH (o)-[r:`" + label + "`]->(i)" + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = $id SET r = $rp";
             // parameters
-            Value parameters = Values.parameters("oid", out.id(), "iid", in.id(), "id", id(), "rp", statementParameters());
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put("oid", out.id());
+            parameters.put("iid", in.id());
+            parameters.put("id", id());
+            parameters.put("rp", statementParameters());
             // command statement
-            return new Neo4JDatabaseCommand(new Statement(statement, parameters), result -> {
+            return new Neo4JDatabaseCommand(statement, parameters, result -> {
             });
         }
         return null;
@@ -372,11 +377,14 @@ public class Neo4JEdge extends Neo4JElement implements Edge {
     @Override
     public Neo4JDatabaseCommand deleteCommand() {
         // delete statement
-        String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " MATCH (o)-[r:`" + label + "`]->(i)" + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = {id} DELETE r";
+        String statement = out.matchStatement("o", "oid") + " " + in.matchStatement("i", "iid") + " MATCH (o)-[r:`" + label + "`]->(i)" + " WHERE " + edgeIdProvider.matchPredicateOperand("r") + " = $id DELETE r";
         // parameters
-        Value parameters = Values.parameters("oid", out.id(), "iid", in.id(), "id", id());
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("oid", out.id());
+        parameters.put("iid", in.id());
+        parameters.put("id", id());
         // command statement
-        return new Neo4JDatabaseCommand(new Statement(statement, parameters), result -> {
+        return new Neo4JDatabaseCommand(statement, parameters, result -> {
         });
     }
 

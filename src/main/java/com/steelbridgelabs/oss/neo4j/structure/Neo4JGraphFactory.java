@@ -22,10 +22,10 @@ import com.steelbridgelabs.oss.neo4j.structure.partitions.AnyLabelReadPartition;
 import com.steelbridgelabs.oss.neo4j.structure.partitions.NoReadPartition;
 import org.apache.commons.configuration.Configuration;
 import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -53,15 +53,13 @@ public class Neo4JGraphFactory {
             Neo4JElementIdProvider<?> edgeIdProvider = loadProvider(driver, configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JEdgeIdProviderClassNameConfigurationKey));
             // readonly
             boolean readonly = configuration.getBoolean(Neo4JGraphConfigurationBuilder.Neo4JReadonlyConfigurationKey);
-            // graph instance
-            Neo4JGraph graph;
+            // database
+            String database = configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JDatabaseConfigurationKey, null);
             // check a read partition is required
             if (graphName != null)
-                graph = new Neo4JGraph(new AnyLabelReadPartition(graphName), new String[]{graphName}, driver, vertexIdProvider, edgeIdProvider, configuration, readonly);
-            else
-                graph = new Neo4JGraph(new NoReadPartition(), new String[]{}, driver, vertexIdProvider, edgeIdProvider, configuration, readonly);
-            // return graph instance
-            return graph;
+                return new Neo4JGraph(new AnyLabelReadPartition(graphName), new String[]{graphName}, driver, database, vertexIdProvider, edgeIdProvider, configuration, readonly);
+            // no graph name
+            return new Neo4JGraph(new NoReadPartition(), new String[]{}, driver, database, vertexIdProvider, edgeIdProvider, configuration, readonly);
         }
         catch (Throwable ex) {
             // throw runtime exception
@@ -76,8 +74,8 @@ public class Neo4JGraphFactory {
         // check we have created an instance for this identifier
         return instances.computeIfAbsent(identifier, key -> {
             // neo4j driver configuration
-            Config config = Config.build()
-                .toConfig();
+            Config config = Config.builder()
+                .build();
             // create driver instance
             return GraphDatabase.driver(configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JUrlConfigurationKey), AuthTokens.basic(configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JUsernameConfigurationKey), configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JPasswordConfigurationKey)), config);
         });
