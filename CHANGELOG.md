@@ -1,5 +1,9 @@
 # Change log
 
+## 0.4.1
+
+* Updated [BOLT driver](https://github.com/neo4j/neo4j-java-driver) to 4.0.0 version
+
 ## 0.4.0
 
 * Experimental support for the upcoming [BOLT driver](https://github.com/neo4j/neo4j-java-driver) 4.0 version, not ready for production use!
