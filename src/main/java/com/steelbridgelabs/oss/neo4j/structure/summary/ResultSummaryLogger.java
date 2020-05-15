@@ -60,7 +60,19 @@ public class ResultSummaryLogger {
         private static final String VariablesColumnName = "Variables";
         private static final String OtherInformationColumnName = "Other";
 
-        private static final String[] otherInformationArgumentKeys = {"LegacyExpression", "LabelName", "Index", "LegacyIndex", "KeyExpressions", "EntityByIdRhs", "ExpandExpression"};
+        private static final String[] otherInformationArgumentKeys = {
+            "Expression",
+            "LegacyExpression",
+            "Expressions",
+            "ExpandExpression",
+            "LabelName",
+            "Index",
+            "LegacyIndex",
+            "KeyExpressions",
+            "EntityByIdRhs",
+            "ExpandExpression",
+            "KeyNames"
+        };
 
         private final List<ProfileInformationDetails> details = new LinkedList<>();
 
