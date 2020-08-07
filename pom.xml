@@ -26,7 +26,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>neo4j-gremlin-bolt</artifactId>
-    <version>0.4.2</version>
+    <version>0.4.3</version>
     <packaging>jar</packaging>
     <name>SteelBridge Labs Neo4J Gremlin (Bolt) integration</name>
     <description>SteelBridge Labs Neo4J Gremlin (Bolt) integration</description>
@@ -61,9 +61,9 @@
         <java.version>1.8</java.version>
 
         <!-- neo4j -->
-        <neo4j-java-driver.version>4.0.1</neo4j-java-driver.version>
+        <neo4j-java-driver.version>4.1.1</neo4j-java-driver.version>
         <!-- gremlin -->
-        <gremlin.version>3.4.6</gremlin.version>
+        <gremlin.version>3.4.7</gremlin.version>
         <!-- slf4j -->
         <slf4j.version>1.7.30</slf4j.version>
         <!-- logback-classic -->
@@ -76,23 +76,23 @@
         <!-- maven plugins -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
-        <build-helper-maven-plugin.version>3.1.0</build-helper-maven-plugin.version>
-        <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
+        <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
+        <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
         <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
-        <maven-bundle-plugin.version>4.2.1</maven-bundle-plugin.version>
-        <maven-shade-plugin.version>3.2.3</maven-shade-plugin.version>
+        <maven-bundle-plugin.version>5.1.1</maven-bundle-plugin.version>
+        <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
         <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
-        <maven-failsafe-plugin.version>3.0.0-M4</maven-failsafe-plugin.version>
+        <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
         <!-- sign -->
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 
         <!-- spotbugs -->
-        <spotbugs-maven-plugin.version>4.0.0</spotbugs-maven-plugin.version>
-        <spotbugs.version>4.0.3</spotbugs.version>
+        <spotbugs-maven-plugin.version>4.0.4</spotbugs-maven-plugin.version>
+        <spotbugs.version>4.1.1</spotbugs.version>
         <!-- checkstyle -->
-        <checkstyle.version>8.32</checkstyle.version>
+        <checkstyle.version>8.35</checkstyle.version>
         <maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
         <!-- pmd -->
         <maven-pmd-plugin.version>3.13.0</maven-pmd-plugin.version>
@@ -450,12 +450,6 @@
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco-maven-plugin.version}</version>
-                    <configuration>
-                        <excludes>
-                            <exclude>org.drools.*</exclude>
-                            <exclude>org.wso2.*</exclude>
-                        </excludes>
-                    </configuration>
                     <executions>
                         <execution>
                             <id>default-prepare-agent</id>
