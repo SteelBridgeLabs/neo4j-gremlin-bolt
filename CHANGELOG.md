@@ -1,5 +1,11 @@
 # Change log
 
+## 0.4.4
+
+* Updated [Apache Tinkerpop](http://tinkerpop.apache.org/) to version 3.4.8
+* Fixed bug [Syntax incompatibility with neo4j on querying edges by multiple labels](https://github.com/SteelBridgeLabs/neo4j-gremlin-bolt/issues/98)
+* Updated Integration Tests [Neo4J](http://neo4j.com/) docker image to 4.1.1 
+
 ## 0.4.3
 
 * Updated [Apache Tinkerpop](http://tinkerpop.apache.org/) to version 3.4.7
