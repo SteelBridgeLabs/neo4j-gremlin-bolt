@@ -271,7 +271,7 @@ public class Neo4JVertexWhileGettingInOutVerticesTest {
         Mockito.when(edge4.label()).thenAnswer(invocation -> "EL2");
         Mockito.when(edge4.outVertex()).thenAnswer(invocation -> vertex4);
         Mockito.when(edge4.id()).thenAnswer(invocation -> 4000L);
-        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`l1`)-[r:`EL2`|:`EL1`]-(m) WHERE n.id = $id AND NOT r.id IN $ids RETURN m"), Mockito.eq(parameters))).thenAnswer(invocation -> statementResult);
+        Mockito.when(session.executeStatement(Mockito.eq("MATCH (n:`l1`)-[r:`EL2`|`EL1`]-(m) WHERE n.id = $id AND NOT r.id IN $ids RETURN m"), Mockito.eq(parameters))).thenAnswer(invocation -> statementResult);
         Mockito.when(session.vertices(Mockito.eq(statementResult))).thenAnswer(invocation -> Stream.of(vertex1, vertex3));
         Mockito.when(statementResult.consume()).thenAnswer(invocation -> resultSummary);
         Neo4JVertex vertex = new Neo4JVertex(graph, session, vertexIdProvider, edgeIdProvider, node);
