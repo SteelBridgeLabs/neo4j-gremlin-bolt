@@ -55,18 +55,11 @@ public class Neo4JGraphFactory {
             boolean readonly = configuration.getBoolean(Neo4JGraphConfigurationBuilder.Neo4JReadonlyConfigurationKey);
             // database
             String database = configuration.getString(Neo4JGraphConfigurationBuilder.Neo4JDatabaseConfigurationKey, null);
-            // check if a read partition is required
-            Neo4JGraph graph;
-            if (graphName != null) {
-                graph = new Neo4JGraph(new AnyLabelReadPartition(graphName), new String[]{graphName}, driver, database, vertexIdProvider, edgeIdProvider, configuration, readonly);
-            }
-            else {
-                // no graph name
-                graph = new Neo4JGraph(new NoReadPartition(), new String[]{}, driver, database, vertexIdProvider, edgeIdProvider, configuration, readonly);
-            }
-            // make sure driver gets closed properly
-            graph.addCloseListener(g -> driver.close());
-            return graph;
+            // check a read partition is required
+            if (graphName != null)
+                return new Neo4JGraph(new AnyLabelReadPartition(graphName), new String[]{graphName}, driver, database, vertexIdProvider, edgeIdProvider, configuration, readonly);
+            // no graph name
+            return new Neo4JGraph(new NoReadPartition(), new String[]{}, driver, database, vertexIdProvider, edgeIdProvider, configuration, readonly);
         }
         catch (Throwable ex) {
             // throw runtime exception
