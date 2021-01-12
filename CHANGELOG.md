@@ -1,5 +1,11 @@
 # Change log
 
+##
+
+* Updated [Apache Tinkerpop](http://tinkerpop.apache.org/) to version 3.4.9
+* Updated [BOLT driver](https://github.com/neo4j/neo4j-java-driver) to 4.2.2 version
+* Fixed bug [the version problem](https://github.com/SteelBridgeLabs/neo4j-gremlin-bolt/issues/103)
+
 ## 0.4.4
 
 * Updated [Apache Tinkerpop](http://tinkerpop.apache.org/) to version 3.4.8

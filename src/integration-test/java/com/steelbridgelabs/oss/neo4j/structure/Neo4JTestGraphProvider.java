@@ -40,7 +40,7 @@ import java.util.stream.StreamSupport;
  */
 public class Neo4JTestGraphProvider extends AbstractGraphProvider {
 
-    private static final Set<Class> implementations = new HashSet<>() {{
+    private static final Set<Class> implementations = new HashSet<Class>() {{
         add(Neo4JEdge.class);
         add(Neo4JGraph.class);
         add(Neo4JVertex.class);
