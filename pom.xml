@@ -26,7 +26,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>neo4j-gremlin-bolt</artifactId>
-    <version>0.4.5</version>
+    <version>0.4.6</version>
     <packaging>jar</packaging>
     <name>SteelBridge Labs Neo4J Gremlin (Bolt) integration</name>
     <description>SteelBridge Labs Neo4J Gremlin (Bolt) integration</description>
@@ -61,9 +61,9 @@
         <java.version>1.8</java.version>
 
         <!-- neo4j -->
-        <neo4j-java-driver.version>4.1.1</neo4j-java-driver.version>
+        <neo4j-java-driver.version>4.2.0</neo4j-java-driver.version>
         <!-- gremlin -->
-        <gremlin.version>3.4.8</gremlin.version>
+        <gremlin.version>3.4.9</gremlin.version>
         <!-- slf4j -->
         <slf4j.version>1.7.30</slf4j.version>
         <!-- logback-classic -->
@@ -89,15 +89,15 @@
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 
         <!-- spotbugs -->
-        <spotbugs-maven-plugin.version>4.0.4</spotbugs-maven-plugin.version>
-        <spotbugs.version>4.1.1</spotbugs.version>
+        <spotbugs-maven-plugin.version>4.2.0</spotbugs-maven-plugin.version>
+        <spotbugs.version>4.2.0</spotbugs.version>
         <!-- checkstyle -->
-        <checkstyle.version>8.35</checkstyle.version>
+        <checkstyle.version>8.39</checkstyle.version>
         <maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
         <!-- pmd -->
-        <maven-pmd-plugin.version>3.13.0</maven-pmd-plugin.version>
+        <maven-pmd-plugin.version>3.14.0</maven-pmd-plugin.version>
         <!-- jacoco -->
-        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
         <!-- coverall -->
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
 
